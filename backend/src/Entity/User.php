@@ -67,6 +67,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?\DateTime $fecha_registro = null;
 
+    #[ORM\OneToOne(mappedBy: 'usuario_id', cascade: ['persist', 'remove'])]
+    private ?Trabajador $trabajador = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -276,6 +279,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFechaRegistro(\DateTime $fecha_registro): static
     {
         $this->fecha_registro = $fecha_registro;
+
+        return $this;
+    }
+
+    public function getTrabajador(): ?Trabajador
+    {
+        return $this->trabajador;
+    }
+
+    public function setTrabajador(?Trabajador $trabajador): static
+    {
+        // set the owning side of the relation if necessary
+        if ($trabajador !== null && $trabajador->getUsuarioId() !== $this) {
+            $trabajador->setUsuarioId($this);
+        }
+
+        $this->trabajador = $trabajador;
 
         return $this;
     }
