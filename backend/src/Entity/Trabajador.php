@@ -3,26 +3,35 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use App\Repository\TrabajadorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TrabajadorRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['trabajador:read']]
+)]
+#[ApiFilter(SearchFilter::class, properties: ['usuario.email' => 'exact'])]
 class Trabajador
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['trabajador:read'])]
     private ?int $id = null;
 
     #[ORM\OneToOne(inversedBy: 'trabajador', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $usuario_id = null;
+    #[Groups(['trabajador:read', 'proyecto:read'])]
+    private ?User $usuario = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['trabajador:read'])]
     private ?string $descripcion = null;
 
     #[ORM\Column]
@@ -32,6 +41,7 @@ class Trabajador
      * @var Collection<int, Estilo>
      */
     #[ORM\ManyToMany(targetEntity: Estilo::class, inversedBy: 'trabajadores')]
+    #[Groups(['trabajador:read'])]
     private Collection $estilos;
 
     /**
@@ -79,14 +89,27 @@ class Trabajador
         return $this->id;
     }
 
-    public function getUsuarioId(): ?User
+    public function getUsuario(): ?User
     {
-        return $this->usuario_id;
+        return $this->usuario;
     }
 
-    public function setUsuarioId(User $usuario_id): static
+    public function setUsuario(User $usuario): static
     {
-        $this->usuario_id = $usuario_id;
+        $this->usuario = $usuario;
+
+        return $this;
+    }
+
+    // Alias para compatibilidad con User::setTrabajador()
+    public function getUsuarioId(): ?User
+    {
+        return $this->usuario;
+    }
+
+    public function setUsuarioId(User $usuario): static
+    {
+        $this->usuario = $usuario;
 
         return $this;
     }

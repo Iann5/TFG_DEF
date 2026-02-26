@@ -28,7 +28,7 @@ class Producto
     #[ORM\Column(type: Types::TEXT)]
     private ?string $descripcion = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT)]
     private ?string $imagen = null;
 
     #[ORM\Column]

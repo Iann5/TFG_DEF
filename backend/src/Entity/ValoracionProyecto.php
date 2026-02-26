@@ -3,34 +3,56 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use App\Repository\ValoracionProyectoRepository;
+use App\State\ValoracionProyectoProcessor;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ValoracionProyectoRepository::class)]
-#[ApiResource]
+#[ApiFilter(SearchFilter::class, properties: ['proyecto' => 'exact'])]
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Get(),
+        new Post(processor: ValoracionProyectoProcessor::class, security: "is_granted('ROLE_USER')"),
+    ],
+    normalizationContext: ['groups' => ['valoracion_proyecto:read']],
+    denormalizationContext: ['groups' => ['valoracion_proyecto:write']],
+)]
 class ValoracionProyecto
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['valoracion_proyecto:read'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'valoracionProyectos')]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['valoracion_proyecto:read'])]
     private ?User $usuario = null;
 
     #[ORM\ManyToOne(inversedBy: 'valoracionProyectos')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['valoracion_proyecto:write'])]
     private ?Proyecto $proyecto = null;
 
     #[ORM\Column]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_proyecto:write', 'proyecto:read'])]
     private ?int $estrellas = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_proyecto:write'])]
     private ?string $comentario = null;
 
     #[ORM\Column]
+    #[Groups(['valoracion_proyecto:read'])]
     private ?\DateTime $fecha = null;
 
     public function getId(): ?int

@@ -3,11 +3,13 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\State\UserPasswordHasher;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -20,6 +22,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'trabajador:read'])]
     private ?string $email = null;
 
     /**
@@ -35,15 +38,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'trabajador:read', 'proyecto:read'])]
     private ?string $nombre = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'trabajador:read', 'proyecto:read'])]
     private ?string $apellidos = null;
 
     #[ORM\Column(length: 20)]
     private ?string $dni = null;
 
     #[ORM\Column(length: 20)]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'trabajador:read'])]
     private ?string $telefono = null;
 
     #[ORM\Column(length: 100)]
@@ -61,13 +67,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 10)]
     private ?string $cp = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: 'text', length: 4294967295, nullable: true)]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'trabajador:read'])]
     private ?string $foto_perfil = null;
 
     #[ORM\Column]
     private ?\DateTime $fecha_registro = null;
 
-    #[ORM\OneToOne(mappedBy: 'usuario_id', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'usuario', cascade: ['persist', 'remove'])]
     private ?Trabajador $trabajador = null;
 
     public function getId(): ?int
@@ -99,6 +106,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @see UserInterface
+     * 
+     * Roles disponibles:
+     * - ROLE_USER: Rol base para todos los usuarios
+     * - ROLE_ADMIN: Administrador del sistema
+     * - ROLE_TRABAJADOR: Trabajador/Artesano
      */
     public function getRoles(): array
     {
@@ -117,6 +129,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->roles = $roles;
 
         return $this;
+    }
+
+    public function addRole(string $role): static
+    {
+        if (!in_array($role, $this->roles)) {
+            $this->roles[] = $role;
+        }
+
+        return $this;
+    }
+
+    public function removeRole(string $role): static
+    {
+        $this->roles = array_filter($this->roles, fn(string $r) => $r !== $role);
+
+        return $this;
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return in_array($role, $this->getRoles());
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('ROLE_ADMIN');
+    }
+
+    public function isTrabajador(): bool
+    {
+        return $this->hasRole('ROLE_TRABAJADOR');
     }
 
     /**
@@ -140,7 +183,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
+        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
 
         return $data;
     }

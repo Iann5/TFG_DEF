@@ -3,44 +3,75 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use App\Repository\ProyectoRepository;
+use App\State\ProyectoProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ProyectoRepository::class)]
-#[ApiResource]
+#[ApiFilter(SearchFilter::class, properties: ['autor' => 'exact', 'tipo' => 'exact'])]
+#[ApiResource(
+    normalizationContext: ['groups' => ['proyecto:read']],
+    operations: [
+        new GetCollection(),
+        new Get(),
+        new Post(processor: ProyectoProcessor::class),
+        new Put(processor: ProyectoProcessor::class),
+        new Patch(processor: ProyectoProcessor::class),
+        new Delete(),
+    ]
+)]
 class Proyecto
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['proyecto:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'proyectos')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['proyecto:read'])]
     private ?Trabajador $autor = null;
 
     #[ORM\ManyToOne(inversedBy: 'proyectos')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['proyecto:read'])]
     private ?Estilo $estilo = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['proyecto:read'])]
     private ?string $nombre = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['proyecto:read'])]
     private ?string $tipo = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['proyecto:read'])]
     private ?string $imagen = null;
 
     #[ORM\Column]
+    #[Groups(['proyecto:read'])]
     private ?float $precio_original = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['proyecto:read'])]
     private ?float $precio_oferta = null;
 
     #[ORM\Column]
+    #[Groups(['proyecto:read'])]
     private ?\DateTime $fecha_subida = null;
 
     /**
@@ -53,6 +84,7 @@ class Proyecto
      * @var Collection<int, ValoracionProyecto>
      */
     #[ORM\OneToMany(targetEntity: ValoracionProyecto::class, mappedBy: 'proyecto')]
+    #[Groups(['proyecto:read'])]
     private Collection $valoracionProyectos;
 
     public function __construct()
@@ -220,5 +252,28 @@ class Proyecto
         }
 
         return $this;
+    }
+    
+    #[Groups(['proyecto:read'])]
+    public function getMedia(): float
+    {
+        if ($this->valoracionProyectos->isEmpty()) {
+            return 0.0;
+        }
+
+        $suma = 0;
+        foreach ($this->valoracionProyectos as $valoracion) {
+            $suma += $valoracion->getEstrellas() ?? 0;
+        }
+
+        return $suma / $this->valoracionProyectos->count();
+    }
+
+    // envia el usuario del ID a React
+    #[Groups(['proyecto:read', 'estilo:read', 'trabajador:read'])] 
+    public function getAutorUserId(): ?int
+    {
+        // Esto navega: Proyecto -> Autor(Trabajador) -> Usuario -> ID
+        return $this->autor?->getUsuario()?->getId();
     }
 }

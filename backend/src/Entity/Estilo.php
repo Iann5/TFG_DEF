@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: EstiloRepository::class)]
 #[ApiResource]
@@ -19,13 +20,17 @@ class Estilo
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['trabajador:read'])]
     private ?string $nombre = null;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $informacion = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT)]
     private ?string $imagen = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $imagenes = null;
 
     /**
      * @var Collection<int, Trabajador>
@@ -82,6 +87,18 @@ class Estilo
     public function setImagen(string $imagen): static
     {
         $this->imagen = $imagen;
+
+        return $this;
+    }
+
+    public function getImagenes(): ?array
+    {
+        return $this->imagenes;
+    }
+
+    public function setImagenes(?array $imagenes): static
+    {
+        $this->imagenes = $imagenes;
 
         return $this;
     }

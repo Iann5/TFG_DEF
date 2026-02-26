@@ -19,6 +19,7 @@ class UserPasswordHashListener
 
     public function prePersist(User $user, PrePersistEventArgs $event): void
     {
+        $this->assignDefaultRole($user);
         $this->hashPassword($user);
     }
 
@@ -41,5 +42,15 @@ class UserPasswordHashListener
         );
         
         $user->setPassword($hashed);
+    }
+
+    private function assignDefaultRole(User $user): void
+    {
+        $roles = $user->getRoles();
+        
+        // Si el usuario no tiene ningún rol, asignar ROLE_USER por defecto
+        if (empty($roles) || (count($roles) === 1 && in_array('ROLE_USER', $roles))) {
+            $user->setRoles(['ROLE_USER']);
+        }
     }
 }

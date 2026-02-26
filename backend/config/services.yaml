@@ -21,3 +21,19 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\State\ProyectoProcessor:
+        bind:
+            $inner: '@api_platform.doctrine.orm.state.persist_processor'
+
+    App\State\ValoracionProyectoProcessor:
+        bind:
+            $inner: '@api_platform.doctrine.orm.state.persist_processor'
+
+    App\State\ValoracionProductoProcessor:
+        bind:
+            $inner: '@api_platform.doctrine.orm.state.persist_processor'
+
+    App\State\ValoracionTrabajadorProcessor:
+        bind:
+            $inner: '@api_platform.doctrine.orm.state.persist_processor'

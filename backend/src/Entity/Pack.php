@@ -32,7 +32,7 @@ class Pack
     #[ORM\Column(type: Types::TEXT)]
     private ?string $descripcion = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::TEXT)]
     private ?string $imagen = null;
 
     #[ORM\Column]
@@ -52,6 +52,12 @@ class Pack
 
     #[ORM\Column]
     private ?\DateTime $fecha_subida = null;
+
+    // Añade la fecha de forma automática
+    public function __construct()
+    {
+        $this->fecha_subida = new \DateTime();
+    }
 
     public function getId(): ?int
     {

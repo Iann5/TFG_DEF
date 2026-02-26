@@ -10,7 +10,12 @@ security:
                 class: App\Entity\User
                 property: email
 
-    # 3. Cortafuegos (Reglas de entrada)
+    # 3. Jerarquía de roles
+    role_hierarchy:
+        ROLE_ADMIN: ['ROLE_USER']
+        ROLE_TRABAJADOR: ['ROLE_USER']
+
+    # 4. Cortafuegos (Reglas de entrada)
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -33,8 +38,13 @@ security:
             stateless: true
             jwt: ~
 
-    # 4. Control de Acceso (Quién puede ver qué)
+    # 5. Control de Acceso (Quién puede ver qué)
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS } # Login público
         - { path: ^/api/docs, roles: PUBLIC_ACCESS }  # Documentación pública
-        # - { path: ^/api, roles: IS_AUTHENTICATED_FULLY } # Descomenta esto al final para proteger todo
+        - { path: ^/api/users, roles: PUBLIC_ACCESS, methods: [POST] } # Registro público
+        - { path: ^/api/trabajadors, methods: [GET], roles: PUBLIC_ACCESS }  # Ver trabajadores es público
+        - { path: ^/api/proyectos, methods: [GET], roles: PUBLIC_ACCESS }    # Ver proyectos es público
+        - { path: ^/api/valoracion_proyectos, methods: [GET], roles: PUBLIC_ACCESS } # Ver valoraciones es público
+        - { path: ^/api/admin, roles: ROLE_ADMIN }  # Solo admins
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY } # Descomenta esto al final para proteger todo
