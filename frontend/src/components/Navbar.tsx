@@ -46,7 +46,7 @@ export default function Navbar() {
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
 
   // Usar el AuthContext en lugar de gestionar isLoggedIn manualmente
-  const { isLoggedIn, hasRole, refreshAuth } = useAuth();
+  const { isLoggedIn, hasRole  } = useAuth();
 
   // ¿Es trabajador o admin?
   const isTrabajadorOrAdmin = hasRole('ROLE_TRABAJADOR') || hasRole('ROLE_ADMIN');
@@ -66,15 +66,6 @@ export default function Navbar() {
     return () => window.removeEventListener('storage', syncPhoto);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    // Limpiar la foto del usuario que cierra sesión
-    const photoKey = getUserPhotoKey();
-    if (photoKey) localStorage.removeItem(photoKey);
-    window.dispatchEvent(new Event('storage'));
-    refreshAuth();
-    navigate('/');
-  };
 
   const closeMenu = () => setIsMenuOpen(false);
 
