@@ -20,7 +20,7 @@ class Privacidad
     #[ORM\JoinColumn(nullable: false)]
     private ?Cita $cita = null;
 
-    #[ORM\ManyToOne(inversedBy: 'privacidad_user')]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $usuario = null;
 

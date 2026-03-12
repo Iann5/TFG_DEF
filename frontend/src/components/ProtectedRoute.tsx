@@ -15,7 +15,11 @@ interface ProtectedRouteProps {
  * - Si tiene permiso → renderiza el Outlet (la ruta hija)
  */
 export default function ProtectedRoute({ allowedRoles, redirectTo = '/' }: ProtectedRouteProps) {
-    const { isLoggedIn, hasRole } = useAuth();
+    const { isLoggedIn, hasRole, isInitializing } = useAuth();
+
+    if (isInitializing) {
+        return null; // or a loading spinner
+    }
 
     if (!isLoggedIn) {
         return <Navigate to="/login" replace />;

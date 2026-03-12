@@ -3,6 +3,7 @@ import { getUserRoles, getHighestRole, isTokenExpired } from '../utils/authUtils
 
 interface AuthContextType {
     isLoggedIn: boolean;
+    isInitializing: boolean;
     roles: string[];
     highestRole: string | null;
     hasRole: (role: string) => boolean;
@@ -11,6 +12,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
     isLoggedIn: false,
+    isInitializing: true,
     roles: [],
     highestRole: null,
     hasRole: () => false,
@@ -20,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [roles, setRoles] = useState<string[]>([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isInitializing, setIsInitializing] = useState(true);
 
     const refreshAuth = () => {
         const token = localStorage.getItem('token');
@@ -35,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setRoles([]);
             setIsLoggedIn(false);
         }
+        setIsInitializing(false);
     };
 
     useEffect(() => {
@@ -47,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const highestRole = getHighestRole(roles);
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn, roles, highestRole, hasRole, refreshAuth }}>
+        <AuthContext.Provider value={{ isLoggedIn, isInitializing, roles, highestRole, hasRole, refreshAuth }}>
             {children}
         </AuthContext.Provider>
     );

@@ -18,11 +18,11 @@ export default function ListaProyecto({ proyectos, favoritos, onToggleFav, puede
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {proyectos.map(p => (
-        <TarjetaProyecto 
-          key={p.id} 
-          proyecto={p} 
+        <TarjetaProyecto
+          key={p.id}
+          proyecto={p}
           esFavorito={favoritos.includes(p.id)}
           onToggleFav={onToggleFav}
           puedeEditar={puedeEditar}

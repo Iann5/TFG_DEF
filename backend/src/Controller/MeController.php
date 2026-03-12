@@ -36,7 +36,6 @@ class MeController extends AbstractController
             $trabajador->setUsuario($user); 
             
             $trabajador->setDescripcion(''); // Valor por defecto para evitar errores de null
-            $trabajador->setTiempoCmMin(0);  // Valor por defecto
 
             $this->em->persist($trabajador);
             $this->em->flush(); // Guardamos en la base de datos
@@ -48,6 +47,7 @@ class MeController extends AbstractController
             'email' => $user->getUserIdentifier(),
             'nombre' => $user->getNombre(),
             'apellidos' => $user->getApellidos(),
+            'dni' => $user->getDni(),
             'telefono' => $user->getTelefono(),
             'foto_perfil' => $user->getFotoPerfil(),
             'roles' => $user->getRoles(),
@@ -57,6 +57,7 @@ class MeController extends AbstractController
         if ($trabajador) {
             $data['trabajadorId'] = $trabajador->getId();
             $data['descripcion'] = $trabajador->getDescripcion();
+            $data['tarifas'] = $trabajador->getTarifas();
             $data['estilos'] = $trabajador->getEstilos()->map(
                 fn($e) => ['id' => $e->getId(), 'nombre' => $e->getNombre()]
             )->getValues();

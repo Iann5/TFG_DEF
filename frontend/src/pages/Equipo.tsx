@@ -13,6 +13,7 @@ import { type Trabajador } from '../types/trabajador';
 
 const ORDEN_OPTS = [
     { value: 'az', label: 'Alfabético (A→Z)' },
+    { value: 'za', label: 'Alfabético (Z→A)' },
     { value: 'val_desc', label: 'Mayor valoración' },
     { value: 'val_asc', label: 'Menor valoración' },
 ];
@@ -66,6 +67,7 @@ const Equipo: React.FC = () => {
         const activo = orden[orden.length - 1] ?? 'az';
         if (activo === 'val_desc') list.sort((a, b) => (b.mediaValoracion ?? 0) - (a.mediaValoracion ?? 0));
         else if (activo === 'val_asc') list.sort((a, b) => (a.mediaValoracion ?? 0) - (b.mediaValoracion ?? 0));
+        else if (activo === 'za') list.sort((a, b) => b.nombre.localeCompare(a.nombre, 'es'));
         else list.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
         return list;
     })();
@@ -84,9 +86,9 @@ const Equipo: React.FC = () => {
                 <main className="container mx-auto px-4 py-8 flex-grow max-w-4xl">
                     {/* Cabecera */}
                     <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-                        <div className="inline-block bg-[#D1D5DB] text-gray-800 font-bold px-4 py-1 rounded-t-md">
-                            Nuestro Equipo
-                        </div>
+                        <h1 className="text-4xl font-light text-white">
+                            Nuestro <span className="text-sky-300 font-bold">Equipo</span>
+                        </h1>
                         {!loading && (
                             <MultiSelect
                                 options={ORDEN_OPTS}

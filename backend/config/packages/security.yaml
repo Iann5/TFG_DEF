@@ -45,6 +45,13 @@ security:
         - { path: ^/api/users, roles: PUBLIC_ACCESS, methods: [POST] } # Registro público
         - { path: ^/api/trabajadors, methods: [GET], roles: PUBLIC_ACCESS }  # Ver trabajadores es público
         - { path: ^/api/proyectos, methods: [GET], roles: PUBLIC_ACCESS }    # Ver proyectos es público
+        - { path: ^/api/productos, methods: [GET], roles: PUBLIC_ACCESS }    # Ver productos es público
+        - { path: ^/api/packs, methods: [GET], roles: PUBLIC_ACCESS }        # Ver packs es público
         - { path: ^/api/valoracion_proyectos, methods: [GET], roles: PUBLIC_ACCESS } # Ver valoraciones es público
+        - { path: ^/api/valoracion_productos, methods: [GET], roles: PUBLIC_ACCESS } # Ver valoraciones de productos es público
+        - { path: ^/api/valoracion_packs, methods: [GET], roles: PUBLIC_ACCESS }     # Ver valoraciones de packs es público
+        - { path: ^/api/valoracion_trabajadors, methods: [GET], roles: PUBLIC_ACCESS } # Ver valoraciones de trabajadores es público
+        - { path: ^/api/equipo, methods: [GET], roles: PUBLIC_ACCESS } # Ver equipo es público
+        - { path: ^/api/estilos, methods: [GET], roles: PUBLIC_ACCESS } # Ver estilos es público
         - { path: ^/api/admin, roles: ROLE_ADMIN }  # Solo admins
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY } # Descomenta esto al final para proteger todo

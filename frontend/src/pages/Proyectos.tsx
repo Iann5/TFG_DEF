@@ -1,18 +1,15 @@
-// src/pages/Proyectos.tsx
 import { useEffect, useState, useMemo, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { Star, Filter } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import PageBackground from '../components/PageBackground';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-
-// COMPONENTES E INTERFACES EXTERNAS
-import ListaProyectos from '../components/ListaProyecto'
+import ListaProyectos from '../components/ListaProyecto';
 import TarjetaProyecto from '../components/TarjetaProyecto';
 import { type RawProyecto, type ProyectoNormalizado, type FiltrosProyectos } from '../types/proyecto';
-import { type ValoracionBase } from '../types/Valoracion';
 
 
 export default function Proyectos() {
@@ -50,10 +47,10 @@ export default function Proyectos() {
           precioOriginal: p.precioOriginal ?? p.precio_original ?? 0,
           precioOferta: p.precioOferta ?? p.precio_oferta ?? null,
           imagen: p.imagen || '',
-          nombreTrabajador: p.autor?.usuario?.nombre 
-          ? `${p.autor.usuario.nombre} ${p.autor.usuario.apellidos || ''}` 
-          : 'Desconocido',
-          fechaSubida: p.fecha_subida || new Date().toISOString(),
+          nombreTrabajador: p.autor?.usuario?.nombre
+            ? `${p.autor.usuario.nombre} ${p.autor.usuario.apellidos || ''}`
+            : 'Desconocido',
+          fechaSubida: p.fechaSubida || p.fecha_subida || new Date(0).toISOString(),
           valoraciones: valoraciones,
           media: p.media || 0
         };
@@ -116,10 +113,18 @@ export default function Proyectos() {
     resultado.sort((a, b) => {
       const fechaA = new Date(a.fechaSubida).getTime();
       const fechaB = new Date(b.fechaSubida).getTime();
-      if (filtros.orden === 'reciente') return fechaB - fechaA;
-      if (filtros.orden === 'antiguo') return fechaA - fechaB;
+
+      if (filtros.orden === 'reciente') {
+        if (fechaA === fechaB) return b.id - a.id;
+        return fechaB - fechaA;
+      }
+      if (filtros.orden === 'antiguo') {
+        if (fechaA === fechaB) return a.id - b.id;
+        return fechaA - fechaB;
+      }
       if (filtros.orden === 'valoracionAlta') return b.media - a.media;
       if (filtros.orden === 'valoracionBaja') return a.media - b.media;
+
       return 0;
     });
     return resultado;
@@ -127,14 +132,8 @@ export default function Proyectos() {
 
   return (
     <div className="min-h-screen bg-[#1C1B28] font-sans relative overflow-hidden">
+      <PageBackground opacity={0.15} />
 
-      {/* FONDO GLOBAL */}
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{ backgroundImage: "url('/paneles.jpg')", backgroundSize: 'cover', opacity: 0.15, filter: 'invert(1)' }}
-      />
-
-      {/* ESTRUCTURA FLEX PARA FOOTER ABAJO */}
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar />
 
@@ -157,7 +156,7 @@ export default function Proyectos() {
               <h2 className="text-2xl font-bold text-sky-400 mb-6 flex items-center gap-3">
                 <Star className="fill-sky-400" /> Proyectos más gustados del mes
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {topDelMes.mejorTatuaje && (
                   <TarjetaProyecto
                     proyecto={topDelMes.mejorTatuaje}

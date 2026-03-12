@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserPhotoKey } from '../utils/authUtils';
@@ -6,10 +6,18 @@ import { getUserPhotoKey } from '../utils/authUtils';
 const SearchBar = () => {
   const [searchValue, setSearchValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      navigate(`/merchandising?q=${encodeURIComponent(searchValue.trim())}`);
+    }
+  };
 
   return (
     <div className={`relative transition-all duration-300 ${isFocused ? 'w-96' : 'w-72'}`}>
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-300 ${isFocused
+      <form onSubmit={handleSearch} className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-300 ${isFocused
         ? 'border-sky-400 bg-white'
         : 'border-gray-400 bg-white hover:border-gray-500'
         }`}>
@@ -35,7 +43,7 @@ const SearchBar = () => {
             </svg>
           </button>
         )}
-      </div>
+      </form>
     </div>
   );
 };
@@ -46,12 +54,27 @@ export default function Navbar() {
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
 
   // Usar el AuthContext en lugar de gestionar isLoggedIn manualmente
-  const { isLoggedIn, hasRole  } = useAuth();
+  const { isLoggedIn, hasRole } = useAuth();
 
   // ¿Es trabajador o admin?
   const isTrabajadorOrAdmin = hasRole('ROLE_TRABAJADOR') || hasRole('ROLE_ADMIN');
   // ¿Es solo admin?
   const isAdmin = hasRole('ROLE_ADMIN');
+
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
 
   useEffect(() => {
     const syncPhoto = () => {
@@ -78,7 +101,7 @@ export default function Navbar() {
         </Link>
 
         <div className="flex gap-3 items-center">
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2.5 hover:bg-gray-800 rounded-lg transition duration-300 group"
@@ -156,12 +179,6 @@ export default function Navbar() {
                   </div>
                 )}
               </button>
-              {/* <button
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg font-semibold transition duration-300 text-sm"
-              >
-                Salir
-              </button> */}
             </>
           ) : (
             <>

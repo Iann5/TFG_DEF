@@ -7,22 +7,22 @@ export interface ValoracionBase {
   estrellas: number;
 }
 
-// Objeto normalizado para la vista
 export interface ItemPromocional {
-  idUnico: string; // Ej: 'pack-1', 'prod-5'
+  idUnico: string;
   dbId: number;
   titulo: string;
   descripcion: string;
   imagen: string;
+  imagenes?: string[];
   precioOriginal: number;
   precioOferta: number | null;
   tipo: CategoriaPromo;
+  tipoOriginal?: string;
   esPack: boolean;
   fechaSubida: string;
   valoracionMedia: number;
 }
 
-// Estado de los filtros
 export interface EstadoFiltros {
   busqueda: string;
   categorias: CategoriaPromo[];
@@ -30,17 +30,26 @@ export interface EstadoFiltros {
   filtroPacks: 'todos' | 'solo-oferta' | 'sin-oferta';
 }
 
-
-
+// Interfaces Raw actualizadas con la propiedad media que envía tu backend
 export interface RawPack {
   id: number;
-  nombrePack: string;
+  titulo: string;
   descripcion?: string;
   imagen?: string;
+  imagenes?: string[];
   precioOriginal?: number;
   precioOferta?: number;
-  tipoDePack?: string;
+  tipoPack?: string;
   fecha_subida?: string;
+  valoracionPacks?: ValoracionBase[];
+  media?: number; // Agregado
+  creador?: {
+    id: number;
+    usuario?: {
+      nombre?: string;
+      apellidos?: string;
+    }
+  }
 }
 
 export interface RawProducto {
@@ -48,10 +57,19 @@ export interface RawProducto {
   nombre: string;
   descripcion?: string;
   imagen?: string;
+  imagenes?: string[];
   precio_original: number;
   precio_oferta?: number | null;
   fecha_subida: string;
   valoracionProductos?: ValoracionBase[];
+  media?: number; // Agregado
+  creador?: {
+    id: number;
+    usuario?: {
+      nombre?: string;
+      apellidos?: string;
+    }
+  }
 }
 
 export interface RawProyecto {
@@ -64,4 +82,12 @@ export interface RawProyecto {
   precio_oferta?: number | null;
   fecha_subida: string;
   valoracionProyectos?: ValoracionBase[];
+  media?: number; // Agregado
+  autor?: {
+    id: number;
+    usuario?: {
+      nombre?: string;
+      apellidos?: string;
+    }
+  }
 }

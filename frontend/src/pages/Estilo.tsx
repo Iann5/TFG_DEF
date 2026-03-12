@@ -3,10 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import MultiSelect from '../components/MultiSelect';
+import PageBackground from '../components/PageBackground';
+import BotonesAdmin from '../components/BotonesAdmin';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { type TrabajadorBasico } from '../types/trabajador';
 import { type EstiloData } from '../types/EstiloInterface';
+
+const ORDEN_OPTS = [
+  { value: 'az', label: 'Alfabético (A→Z)' },
+  { value: 'za', label: 'Alfabético (Z→A)' },
+  { value: 'reciente', label: 'Más reciente' },
+  { value: 'antiguo', label: 'Más antiguo' },
+];
 
 
 const Estilo = () => {
@@ -18,6 +28,9 @@ const Estilo = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [trabajadores1, setTrabajadores1] = useState<TrabajadorBasico[]>([]);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [orden, setOrden] = useState<string[]>(['az']);
 
 
   const cargar = async () => {
@@ -61,40 +74,80 @@ const Estilo = () => {
     } catch {/* silencioso */ }
   };
 
+  const estilosProcesados = (() => {
+    let list = [...estilos];
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      list = list.filter(e =>
+        e.nombre.toLowerCase().includes(query) ||
+        (e.informacion && e.informacion.toLowerCase().includes(query))
+      );
+    }
+
+    const activo = orden[orden.length - 1] ?? 'az';
+    if (activo === 'reciente') list.sort((a, b) => b.id - a.id);
+    else if (activo === 'antiguo') list.sort((a, b) => a.id - b.id);
+    else if (activo === 'za') list.sort((a, b) => b.nombre.localeCompare(a.nombre, 'es'));
+    else list.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+
+    return list;
+  })();
+
   return (
     <div className="min-h-screen font-sans relative bg-[#1C1B28] overflow-hidden">
-      {/* Fondo manga */}
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{
-          backgroundImage: "url('/paneles.jpg')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.24,
-          filter: 'invert(1)',
-        }}
-      />
+      <PageBackground opacity={0.24} />
 
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar />
 
         <main className="container mx-auto px-4 py-12 flex-grow space-y-16">
-          {/* Botón añadir — solo trabajador/admin */}
-          {puedeEditar && (
-            <div className="flex justify-end">
+          <div className="max-w-4xl mx-auto w-full flex flex-col md:flex-row items-center justify-center mb-10 gap-6 md:gap-120">
+            {/* Título */}
+            <h1 className="text-4xl font-light text-white">
+              Nuestros <span className="text-sky-500 font-bold">Estilos</span>
+            </h1>
+
+            {/* Botón añadir — solo trabajador/admin */}
+            {puedeEditar && (
               <button
                 onClick={() => navigate('/crearEstilo')}
-                className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl transition"
+                className="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl transition shadow-lg shadow-sky-900/20 active:scale-95"
               >
                 + Añadir Estilo
               </button>
+            )}
+          </div>
+
+          {/* Buscador y Filtros */}
+          <div className="max-w-4xl mx-auto w-full bg-[#323444]/80 p-6 rounded-2xl border border-white/5 mb-10 flex flex-col md:flex-row gap-6 shadow-xl backdrop-blur-sm items-center">
+            <div className="flex-1 w-full relative">
+              <input
+                type="text"
+                placeholder="Buscar estilos por nombre o descripción..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#1C1B28] text-white border border-[#3B82F6]/30 px-4 py-3 rounded-xl outline-none focus:border-sky-500 transition-colors"
+              />
             </div>
+            <div className="w-full md:w-64">
+              <MultiSelect
+                options={ORDEN_OPTS}
+                selected={orden}
+                onChange={setOrden}
+                placeholder="Ordenar por..."
+              />
+            </div>
+          </div>
+
+          {loading && <p className="text-white text-center text-xl mb-10">Cargando catálogo artístico...</p>}
+          {error && <p className="text-red-400 text-center bg-red-900/20 p-4 rounded-lg mb-10">{error}</p>}
+
+          {estilosProcesados.length === 0 && !loading && !error && (
+            <p className="text-white/60 text-center text-lg mb-10">No se encontraron estilos con esos parámetros.</p>
           )}
 
-          {loading && <p className="text-white text-center text-xl">Cargando catálogo artístico...</p>}
-          {error && <p className="text-red-400 text-center bg-red-900/20 p-4 rounded-lg">{error}</p>}
-
-          {estilos.map(estilo => {
+          {estilosProcesados.map(estilo => {
             // Construir array de hasta 3 fotos: imagenes[] tiene prioridad, si no usamos imagen
             const fotos: (string | undefined)[] = [
               ...(estilo.imagenes ?? []),
@@ -117,7 +170,7 @@ const Estilo = () => {
 
                 {/* Información */}
                 <div className="bg-[#D1D5DB] rounded-lg p-4 mb-6 min-h-[80px] flex items-center justify-center">
-                  <p className="text-gray-800 font-bold text-center uppercase tracking-widest text-justify">
+                  <p className="text-gray-800 font-bold uppercase tracking-widest text-justify whitespace-pre-line w-full">
                     {estilo.informacion || 'INFO'}
                   </p>
                 </div>
@@ -133,7 +186,7 @@ const Estilo = () => {
                         <img
                           src={foto}
                           alt={`${estilo.nombre} ejemplo ${idx + 1}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
                       ) : (
                         <span className="text-gray-700 font-black text-3xl">IMG</span>
@@ -154,8 +207,8 @@ const Estilo = () => {
 
                   {trabajadores.map((t: string | number | { id: number }, index: number) => {
                     // 1. Obtenemos el ID de forma totalmente tipada (sin errores rojos)
-                    const tId = typeof t === 'object' 
-                      ? t.id 
+                    const tId = typeof t === 'object'
+                      ? t.id
                       : parseInt(String(t).split('/').pop() || '0', 10);
 
                     // 2. Cruzamos el ID con tu lista que tiene todos los datos completos
@@ -178,19 +231,12 @@ const Estilo = () => {
 
                 {/* Botones editar/eliminar — solo trabajador/admin */}
                 {puedeEditar && (
-                  <div className="flex gap-3 mt-4 pt-4 border-t border-[#3B82F6]/30">
-                    <button
-                      onClick={() => navigate(`/editarEstilo/${estilo.id}`)}
-                      className="flex-1 py-2 bg-amber-600/80 hover:bg-amber-600 text-white font-bold rounded-lg transition"
-                    >
-                      ✏️ Editar Estilo
-                    </button>
-                    <button
-                      onClick={() => handleEliminar(estilo.id)}
-                      className="flex-1 py-2 bg-red-700/80 hover:bg-red-700 text-white font-bold rounded-lg transition"
-                    >
-                      🗑 Eliminar
-                    </button>
+                  <div className="mt-4 pt-4 border-t border-[#3B82F6]/30">
+                    <BotonesAdmin
+                      size="md"
+                      onEditar={() => navigate(`/editarEstilo/${estilo.id}`)}
+                      onEliminar={() => handleEliminar(estilo.id)}
+                    />
                   </div>
                 )}
               </section>

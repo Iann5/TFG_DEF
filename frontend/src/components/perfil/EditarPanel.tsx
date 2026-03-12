@@ -52,12 +52,10 @@ export default function EditarPanel({ userData, onCambiar, onLogout, onEliminar 
                 </button>
             </div>
 
-            <div className="flex-1" />
-
             {/* Cerrar sesión */}
             <button
                 onClick={onLogout}
-                className="w-full bg-blue-800 hover:bg-blue-900 border-2 border-blue-500 text-white font-bold py-3.5 rounded-xl transition text-base"
+                className="w-full bg-blue-800 hover:bg-blue-900 border-2 border-blue-500 text-white font-bold py-3.5 rounded-xl transition text-base mt-2"
             >
                 Cerrar Sesión
             </button>
@@ -69,6 +67,8 @@ export default function EditarPanel({ userData, onCambiar, onLogout, onEliminar 
             >
                 Eliminar Cuenta
             </button>
+
+            <div className="flex-1" />
         </div>
     );
 }

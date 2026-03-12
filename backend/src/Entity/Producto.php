@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ProductoRepository::class)]
 #[ApiResource]
@@ -20,6 +21,7 @@ class Producto
 
     #[ORM\ManyToOne(inversedBy: 'productos')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['producto:read'])]
     private ?Trabajador $creador = null;
 
     #[ORM\Column(length: 255)]
@@ -30,6 +32,9 @@ class Producto
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $imagen = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $imagenes = null;
 
     #[ORM\Column]
     private ?float $precio_original = null;
@@ -53,6 +58,7 @@ class Producto
      * @var Collection<int, ValoracionProducto>
      */
     #[ORM\OneToMany(targetEntity: ValoracionProducto::class, mappedBy: 'producto')]
+    #[Groups(['producto:read'])]
     private Collection $valoracionProductos;
 
     /**
@@ -117,6 +123,18 @@ class Producto
     public function setImagen(string $imagen): static
     {
         $this->imagen = $imagen;
+
+        return $this;
+    }
+
+    public function getImagenes(): ?array
+    {
+        return $this->imagenes;
+    }
+
+    public function setImagenes(?array $imagenes): static
+    {
+        $this->imagenes = $imagenes;
 
         return $this;
     }
@@ -257,5 +275,26 @@ class Producto
         }
 
         return $this;
+    }
+
+    #[Groups(['producto:read'])]
+    public function getMedia(): float
+    {
+        if ($this->valoracionProductos->isEmpty()) {
+            return 0.0;
+        }
+
+        $suma = 0;
+        foreach ($this->valoracionProductos as $valoracion) {
+            $suma += $valoracion->getEstrellas() ?? 0;
+        }
+
+        return $suma / $this->valoracionProductos->count();
+    }
+
+    #[Groups(['producto:read'])]
+    public function getCreadorUserId(): ?int
+    {
+        return $this->creador?->getUsuario()?->getId();
     }
 }

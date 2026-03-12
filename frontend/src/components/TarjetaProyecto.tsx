@@ -75,19 +75,28 @@ export default function TarjetaProyecto({
         </div>
 
         <div className="mt-auto">
+          {/* Botón Reservar cita */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation(); // Avoid triggering card click if there's any
+              navigate('/cita');
+            }}
+            className="w-full py-2 mb-2 bg-green-600 hover:bg-green-500 text-white text-sm font-bold rounded-xl transition flex items-center justify-center gap-2"
+          >
+            📅 Reservar cita
+          </button>
+
           {/* Botón Ver detalles — siempre visible */}
           <button
             onClick={() => navigate(`/proyecto/${proyecto.id}`)}
             className="w-full py-2 mb-3 bg-sky-700/60 hover:bg-sky-600 text-white text-sm font-bold rounded-xl transition"
           >
-          
-          
             🔍 Ver detalles
           </button>
           {puedeEditar && !isTop && (
             <div className="flex gap-2 pt-4 border-t border-white/10 mt-2">
               <button
-                onClick={() => navigate(`/addTatuaje/${proyecto.id}`)}
+                onClick={() => navigate(`/editarProyecto/${proyecto.id}`)}
                 className="flex-1 py-1.5 bg-amber-600/80 hover:bg-amber-600 text-white text-sm font-bold rounded-lg transition"
               >
                 ✏️ Editar

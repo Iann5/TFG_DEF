@@ -9,7 +9,7 @@ import api from '../services/api';
 
 // REUTILIZAMOS TIPOS Y COMPONENTES (Cero duplicidades, cero 'any')
 import ListaProyectos from '../components/ListaProyecto';
-import { type ValoracionBase } from '../types/Valoracion';
+//import { type ValoracionBase } from '../types/Valoracion';
 import {
   type RawProyecto,
   type ProyectoNormalizado,
@@ -51,9 +51,9 @@ export default function ProyectosMasGustados() {
           precioOriginal: p.precioOriginal ?? p.precio_original ?? 0,
           precioOferta: p.precioOferta ?? p.precio_oferta ?? null,
           imagen: p.imagen || '',
-          nombreTrabajador: p.autor?.usuario?.nombre 
-          ? `${p.autor.usuario.nombre} ${p.autor.usuario.apellidos || ''}` 
-          : 'Desconocido',
+          nombreTrabajador: p.autor?.usuario?.nombre
+            ? `${p.autor.usuario.nombre} ${p.autor.usuario.apellidos || ''}`
+            : 'Desconocido',
           fechaSubida: p.fecha_subida || new Date().toISOString(),
           valoraciones: valoraciones,
           media: p.media || 0

@@ -1,0 +1,29 @@
+
+Mapping
+-------
+
+ [FAIL] The entity-class App\Entity\Cita mapping is invalid:
+ * The association App\Entity\Cita#usuario refers to the inverse side field App\Entity\User#citas which does not exist.
+
+
+ [FAIL] The entity-class App\Entity\LineaPedido mapping is invalid:
+ * The association App\Entity\LineaPedido#usuario refers to the inverse side field App\Entity\User#lineaPedidos which does not exist.
+
+
+ [FAIL] The entity-class App\Entity\Pedido mapping is invalid:
+ * The association App\Entity\Pedido#usuario refers to the inverse side field App\Entity\User#pedidos which does not exist.
+
+
+ [FAIL] The entity-class App\Entity\Privacidad mapping is invalid:
+ * The association App\Entity\Privacidad#usuario refers to the inverse side field App\Entity\User#privacidad_user which does not exist.
+
+
+Database
+--------
+
+ [ERROR] The database 
+         schema is not
+         in sync with 
+         the current  
+         mapping file.
+

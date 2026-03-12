@@ -22,7 +22,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'trabajador:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read'])]
     private ?string $email = null;
 
     /**
@@ -38,18 +38,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'trabajador:read', 'proyecto:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read', 'proyecto:read', 'cita:read', 'producto:read'])]
     private ?string $nombre = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'trabajador:read', 'proyecto:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read', 'proyecto:read', 'cita:read', 'producto:read'])]
     private ?string $apellidos = null;
 
     #[ORM\Column(length: 20)]
     private ?string $dni = null;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'trabajador:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read'])]
     private ?string $telefono = null;
 
     #[ORM\Column(length: 100)]
@@ -68,7 +68,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $cp = null;
 
     #[ORM\Column(type: 'text', length: 4294967295, nullable: true)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'trabajador:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read'])]
     private ?string $foto_perfil = null;
 
     #[ORM\Column]

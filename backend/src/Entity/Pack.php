@@ -3,11 +3,17 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use App\Repository\PackRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: PackRepository::class)]
+#[ApiFilter(SearchFilter::class, properties: ['creador' => 'exact'])]
 #[ApiResource]
 class Pack
 {
@@ -35,6 +41,9 @@ class Pack
     #[ORM\Column(type: Types::TEXT)]
     private ?string $imagen = null;
 
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $imagenes = null;
+
     #[ORM\Column]
     private ?float $precio_original = null;
 
@@ -53,10 +62,25 @@ class Pack
     #[ORM\Column]
     private ?\DateTime $fecha_subida = null;
 
+    /**
+     * @var Collection<int, ValoracionPack>
+     */
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ValoracionPack::class, orphanRemoval: true)]
+    #[Groups(['pack:read'])]
+    private Collection $valoracionPacks;
+
+    /**
+     * @var Collection<int, Cita>
+     */
+    #[ORM\ManyToMany(targetEntity: Cita::class, mappedBy: 'packs')]
+    private Collection $citas;
+
     // Añade la fecha de forma automática
     public function __construct()
     {
         $this->fecha_subida = new \DateTime();
+        $this->valoracionPacks = new ArrayCollection();
+        $this->citas = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -136,6 +160,18 @@ class Pack
         return $this;
     }
 
+    public function getImagenes(): ?array
+    {
+        return $this->imagenes;
+    }
+
+    public function setImagenes(?array $imagenes): static
+    {
+        $this->imagenes = $imagenes;
+
+        return $this;
+    }
+
     public function getPrecioOriginal(): ?float
     {
         return $this->precio_original;
@@ -204,6 +240,85 @@ class Pack
     public function setFechaSubida(\DateTime $fecha_subida): static
     {
         $this->fecha_subida = $fecha_subida;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ValoracionPack>
+     */
+    public function getValoracionPacks(): Collection
+    {
+        return $this->valoracionPacks;
+    }
+
+    public function addValoracionPack(ValoracionPack $valoracionPack): static
+    {
+        if (!$this->valoracionPacks->contains($valoracionPack)) {
+            $this->valoracionPacks->add($valoracionPack);
+            $valoracionPack->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValoracionPack(ValoracionPack $valoracionPack): static
+    {
+        if ($this->valoracionPacks->removeElement($valoracionPack)) {
+            // set the owning side to null (unless already changed)
+            if ($valoracionPack->getPack() === $this) {
+                $valoracionPack->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    #[Groups(['pack:read'])]
+    public function getMedia(): ?float
+    {
+        if ($this->valoracionPacks->isEmpty()) {
+            return null;
+        }
+
+        $suma = 0;
+        foreach ($this->valoracionPacks as $valoracion) {
+            $suma += $valoracion->getEstrellas();
+        }
+
+        return $suma / $this->valoracionPacks->count();
+    }
+
+    // envia el usuario del ID a React
+    #[Groups(['pack:read'])]
+    public function getCreadorUserId(): ?int
+    {
+        return $this->creador?->getUsuario()?->getId();
+    }
+
+    /**
+     * @return Collection<int, Cita>
+     */
+    public function getCitas(): Collection
+    {
+        return $this->citas;
+    }
+
+    public function addCita(Cita $cita): static
+    {
+        if (!$this->citas->contains($cita)) {
+            $this->citas->add($cita);
+            $cita->addPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCita(Cita $cita): static
+    {
+        if ($this->citas->removeElement($cita)) {
+            $cita->removePack($this);
+        }
 
         return $this;
     }

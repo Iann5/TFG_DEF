@@ -27,15 +27,16 @@ class Trabajador
 
     #[ORM\OneToOne(inversedBy: 'trabajador', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['trabajador:read', 'proyecto:read'])]
+    #[Groups(['trabajador:read', 'proyecto:read', 'cita:read', 'producto:read', 'pack:read'])]
     private ?User $usuario = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Groups(['trabajador:read'])]
     private ?string $descripcion = null;
 
-    #[ORM\Column]
-    private ?float $tiempo_cm_min = null;
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['trabajador:read', 'trabajador:write'])]
+    private ?array $tarifas = null;
 
     /**
      * @var Collection<int, Estilo>
@@ -126,14 +127,14 @@ class Trabajador
         return $this;
     }
 
-    public function getTiempoCmMin(): ?float
+    public function getTarifas(): ?array
     {
-        return $this->tiempo_cm_min;
+        return $this->tarifas;
     }
 
-    public function setTiempoCmMin(float $tiempo_cm_min): static
+    public function setTarifas(?array $tarifas): static
     {
-        $this->tiempo_cm_min = $tiempo_cm_min;
+        $this->tarifas = $tarifas;
 
         return $this;
     }

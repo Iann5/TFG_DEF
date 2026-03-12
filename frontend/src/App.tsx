@@ -8,11 +8,9 @@ import Equipo from './pages/Equipo';
 import Estilo from './pages/Estilo';
 import Merchandising from './pages/Merchandising';
 import OfertasYPacks from './pages/OfertasYPacks';
-import PedirCita from './pages/PedirCita';
+import ReservarCita from './pages/ReservarCita';
 import Proyectos from './pages/Proyectos';
 import Informacion from './pages/Informacion';
-//import CrearEstilo from './pages/Estilos/FormularioEstilo';
-//import EditarEstilo from './pages/Estilos/FormularioEstilo';
 import AddTatuaje from './pages/AddTatuaje';
 import AddProducto from './pages/AddProducto';
 import CrearPack from './pages/CrearPack';
@@ -24,6 +22,8 @@ import FormularioEstilo from './pages/FormularioEstilo';
 import DetalleProyecto from './pages/DetalleProyecto';
 import DetalleProducto from './pages/DetalleProducto';
 import DetallePack from './pages/DetallePack';
+import Agenda from './pages/Agenda';
+import VistaDia from './pages/VistaDia';
 
 function App() {
   return (
@@ -38,7 +38,6 @@ function App() {
           <Route path='/estilos' element={<Estilo />} />
           <Route path='/merchandising' element={<Merchandising />} />
           <Route path='/ofertasYpacks' element={<OfertasYPacks />} />
-          <Route path='/cita' element={<PedirCita />} />
           <Route path='/proyecto' element={<Proyectos />} />
           <Route path='/proyecto/:id' element={<DetalleProyecto />} />
           <Route path='/merchandising/:id' element={<DetalleProducto />} />
@@ -50,6 +49,7 @@ function App() {
           {/* ─── Rutas para todos los usuarios autenticados ─── */}
           <Route element={<ProtectedRoute allowedRoles={['ROLE_USER', 'ROLE_TRABAJADOR', 'ROLE_ADMIN']} />}>
             <Route path='/perfil' element={<Perfil />} />
+            <Route path='/cita' element={<ReservarCita />} />
           </Route>
 
           {/* ─── Rutas para Trabajador y Admin ─── */}
@@ -57,8 +57,13 @@ function App() {
             <Route path='/crearEstilo' element={<FormularioEstilo />} />
             <Route path='/editarEstilo/:id' element={<FormularioEstilo />} />
             <Route path='/addTatuaje' element={<AddTatuaje />} />
+            <Route path='/editarProyecto/:id' element={<AddTatuaje />} />
             <Route path='/addProducto' element={<AddProducto />} />
+            <Route path='/editarProducto/:id' element={<AddProducto />} />
             <Route path='/crearPack' element={<CrearPack />} />
+            <Route path='/editarPack/:id' element={<CrearPack />} />
+            <Route path='/agenda' element={<Agenda />} />
+            <Route path='/agenda/dia/:fecha' element={<VistaDia />} />
           </Route>
 
           {/* ─── Rutas solo para Admin ─── */}

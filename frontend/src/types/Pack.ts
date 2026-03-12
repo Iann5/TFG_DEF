@@ -10,10 +10,24 @@ export interface PackDetalle {
     descripcion: string;
     tipoPack: string;
     imagen: string;
+    imagenes?: string[];
     precioOriginal: number;
     precioOferta: number | null;
     stock: number;
     cantidad: number;
-    productos?: ItemContenido[]; 
+    productos?: ItemContenido[];
     proyectos?: ItemContenido[];
+    media?: number;
+    fecha_subida?: string;
+    autor?: {
+        id?: number;
+    };
+    creadorUserId?: number;
+    creador?: {
+        id?: number;
+        usuario?: {
+            nombre?: string;
+            apellidos?: string;
+        }
+    }
 }

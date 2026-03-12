@@ -33,6 +33,7 @@ export interface RawProyecto {
     }
   };
   fecha_subida?: string;
+  fechaSubida?: string;
   valoracionProyectos?: ValoracionBase[];
   media?: number;
 }
@@ -53,8 +54,8 @@ export interface ProyectoNormalizado {
   valoraciones: ValoracionBase[];
   media: number;
 }
-  //   autor_id: number;
-  //   autorUserId?: number; 
+//   autor_id: number;
+//   autorUserId?: number; 
 
 export interface FiltrosProyectos {
   orden: 'reciente' | 'antiguo' | 'valoracionAlta' | 'valoracionBaja';
@@ -63,19 +64,27 @@ export interface FiltrosProyectos {
 }
 
 export interface DetalleRaw {
-    id: number;
-    nombre?: string;
-    tituloTatuaje?: string;
-    descripcion?: string;
-    tipo?: string;
-    estilo?: string;
-    imagen?: string;
-    precio_original?: number;
-    precioOriginal?: number;
-    precio_oferta?: number | null;
-    precioOferta?: number | null;
-    nombreTrabajador?: string;
-    fecha_subida?: string;
-    valoracionProyectos?: RawValoracion[];
+  id: number;
+  nombre?: string;
+  tituloTatuaje?: string;
+  descripcion?: string;
+  tipo?: string;
+  estilo?: string;
+  imagen?: string;
+  precio_original?: number;
+  precioOriginal?: number;
+  precio_oferta?: number | null;
+  precioOferta?: number | null;
+  nombreTrabajador?: string;
+  autor?: {
+    id?: number;
+    usuario?: {
+      nombre?: string;
+      apellidos?: string;
+    }
+  };
+  fecha_subida?: string;
+  fechaSubida?: string;
+  valoracionProyectos?: RawValoracion[];
 }
 

@@ -16,11 +16,30 @@ export interface UserData {
     // Solo presente cuando el usuario tiene rol trabajador
     trabajadorId?: number;
     descripcion?: string;
+    tarifas?: { cm: number; minutos: number; precio: number }[];
     estilos?: Estilo[];
 }
 
 export interface Cita {
     id: number;
-    fecha: string;
-    hora: string;
+    fecha: string;        // API Platform returns dates as ISO strings
+    hora_inicio: string;  // API Platform returns times as ISO strings
+    hora_fin: string;
+    estado: string;
+    tipo_cita: string;
+    usuario?: {
+        nombre: string;
+        apellidos: string;
+    };
+    trabajador?: {
+        id: number;
+        usuario?: {
+            nombre: string;
+            apellidos: string;
+        };
+    };
+    proyectos?: {
+        id: number;
+        titulo?: string;
+    }[];
 }

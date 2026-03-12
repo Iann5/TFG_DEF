@@ -1,0 +1,8 @@
+
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+src/components/ListaComentarios.tsx(2,15): error TS2305: Module '"../types/proyecto"' has no exported member 'ValoracionDetalle'.
+src/pages/DetalleProducto.tsx(38,12): error TS6133: 'valError' is declared but its value is never read.
+src/pages/PlantillasDemandadas.tsx(15,10): error TS2459: Module '"../types/proyecto"' declares 'ValoracionBase' locally, but it is not exported.
+src/pages/PlantillasDemandadas.tsx(15,10): error TS6133: 'ValoracionBase' is declared but its value is never read.

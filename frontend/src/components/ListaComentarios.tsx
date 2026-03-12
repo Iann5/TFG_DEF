@@ -1,5 +1,5 @@
 // src/components/ListaComentarios.tsx
-import { type ValoracionDetalle } from '../types/proyecto';
+import { type ValoracionDetalle } from '../types/Valoracion';
 import StarRating from './StarRating';
 
 interface Props {
@@ -23,9 +23,13 @@ export default function ListaComentarios({ valoraciones }: Props) {
                     className="bg-[#1C1B28] border border-white/5 rounded-xl p-4 flex flex-col gap-2"
                 >
                     <div className="flex items-center gap-3">
-                        {/* Avatar inicial */}
-                        <div className="w-9 h-9 rounded-full bg-sky-700 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                            {v.nombreUsuario?.charAt(0).toUpperCase() ?? '?'}
+                        {/* Avatar inicial o Foto Perfil */}
+                        <div className="w-9 h-9 rounded-full bg-sky-700 flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden border border-white/10">
+                            {v.fotoPerfil ? (
+                                <img src={v.fotoPerfil} alt={v.nombreUsuario || 'Usuario'} className="w-full h-full object-cover" />
+                            ) : (
+                                v.nombreUsuario?.charAt(0).toUpperCase() ?? '?'
+                            )}
                         </div>
                         <div className="flex flex-col">
                             <span className="text-white font-semibold text-sm leading-tight">

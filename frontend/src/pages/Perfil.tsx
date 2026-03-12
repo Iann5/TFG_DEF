@@ -94,7 +94,7 @@ export default function Perfil() {
                 <div className="relative z-10 flex flex-col flex-1 px-6 py-10 max-w-5xl mx-auto w-full">
 
                     {/* Botón volver */}
-                    <button onClick={() => navigate(-1)} className="self-start text-white hover:text-sky-300 transition text-2xl mb-6">
+                    <button onClick={() => navigate('/')} className="self-start text-white hover:text-sky-300 transition text-2xl mb-6">
                         ←
                     </button>
 
@@ -105,7 +105,7 @@ export default function Perfil() {
                     <FotoPerfil photo={photo} userId={userData?.id ?? null} onPhotoChange={setPhoto} />
 
                     {/* Contenido: dos columnas */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
                         {/* Panel izquierdo según rol */}
                         <div className="bg-slate-700/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
@@ -114,6 +114,7 @@ export default function Perfil() {
                                 <PanelTrabajador
                                     estilosIniciales={userData?.estilos ?? []}
                                     descripcionInicial={userData?.descripcion ?? ''}
+                                    tarifasIniciales={userData?.tarifas ?? []}
                                     trabajadorId={userData?.trabajadorId}
                                 />
                             )}

@@ -6,16 +6,24 @@ import type { Estilo } from '../../types/perfil';
 interface Props {
     estilosIniciales: Estilo[];
     descripcionInicial?: string;
+    tarifasIniciales?: { cm: number; minutos: number; precio: number }[];
     trabajadorId?: number;
 }
 
-export default function PanelTrabajador({ estilosIniciales, descripcionInicial = '', trabajadorId }: Props) {
+export default function PanelTrabajador({ estilosIniciales, descripcionInicial = '', tarifasIniciales = [], trabajadorId }: Props) {
     const navigate = useNavigate();
     const fileRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
-    // ── Descripción ────────────────────────────────────────────────
+    // ── Configuración General (Descripción, Precios, Tiempos) ──────
     const [descripcion, setDescripcion] = useState(descripcionInicial);
     const [guardandoDesc, setGuardandoDesc] = useState(false);
+
+    // ── Tarifas (JSON array) ───────────────────────────────────────
+    const [tarifas, setTarifas] = useState<{ cm: number; minutos: number; precio: number }[]>(tarifasIniciales);
+    const [cmInput, setCmInput] = useState(10);
+    const [minInput, setMinInput] = useState(60);
+    const [precioInput, setPrecioInput] = useState(0);
+    const [guardandoTarifas, setGuardandoTarifas] = useState(false);
 
     // ── Especializaciones ──────────────────────────────────────────
     const [todosEstilos, setTodosEstilos] = useState<Estilo[]>([]);
@@ -45,12 +53,15 @@ export default function PanelTrabajador({ estilosIniciales, descripcionInicial =
     // Sincronizar mis estilos cuando lleguen las props iniciales
     useEffect(() => {
         setMisEstilos(estilosIniciales);
-    }, [estilosIniciales]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [JSON.stringify(estilosIniciales)]);
 
-    // Sincronizar descripción cuando llegue la prop inicial
+    // Sincronizar datos iniciales cuando lleguen las props
     useEffect(() => {
         setDescripcion(descripcionInicial);
-    }, [descripcionInicial]);
+        setTarifas(tarifasIniciales);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [descripcionInicial, JSON.stringify(tarifasIniciales)]);
 
     // Solo muestra en el desplegable los que NO tengo aún
     const misIds = new Set(misEstilos.map(e => e.id));
@@ -111,8 +122,8 @@ export default function PanelTrabajador({ estilosIniciales, descripcionInicial =
             console.error('Error eliminando foto:', err);
         }
     };
-    // ── Guardar descripción ────────────────────────────────────────
-    const handleGuardarDescripcion = async () => {
+    // ── Guardar Descripción ────────────────────────────────────────
+    const handleGuardarConfig = async () => {
         if (!trabajadorId) return;
         setGuardandoDesc(true);
         try {
@@ -120,9 +131,53 @@ export default function PanelTrabajador({ estilosIniciales, descripcionInicial =
                 headers: { 'Content-Type': 'application/merge-patch+json' }
             });
         } catch (err) {
-            console.error('Error guardando descripción:', err);
+            console.error('Error guardando configuración:', err);
         } finally {
             setGuardandoDesc(false);
+        }
+    };
+
+    // ── Guardar Tarifa ─────────────────────────────────────────────
+    const handleGuardarTarifa = async () => {
+        if (!trabajadorId || cmInput <= 0 || minInput <= 0 || precioInput < 0) return;
+        setGuardandoTarifas(true);
+
+        const tarifaActualizada = { cm: cmInput, minutos: minInput, precio: precioInput };
+
+        let nuevasTarifas = [...tarifas];
+        const index = nuevasTarifas.findIndex(t => t.cm === cmInput);
+        if (index >= 0) {
+            nuevasTarifas[index] = tarifaActualizada; // Sobreescribe si existe
+        } else {
+            nuevasTarifas.push(tarifaActualizada);
+        }
+        nuevasTarifas.sort((a, b) => a.cm - b.cm); // Mantener el JSON ordenado
+
+        try {
+            await api.patch(`/trabajadors/${trabajadorId}`, { tarifas: nuevasTarifas }, {
+                headers: { 'Content-Type': 'application/merge-patch+json' }
+            });
+            setTarifas(nuevasTarifas);
+            // Optionally clear or leave inputs
+        } catch (err) {
+            console.error('Error guardando tarifa:', err);
+            alert("No se ha podido guardar la tarifa.");
+        } finally {
+            setGuardandoTarifas(false);
+        }
+    };
+
+    // ── Eliminar Tarifa ────────────────────────────────────────────
+    const handleEliminarTarifa = async (cmToRemove: number) => {
+        if (!trabajadorId) return;
+        const nuevasTarifas = tarifas.filter(t => t.cm !== cmToRemove);
+        try {
+            await api.patch(`/trabajadors/${trabajadorId}`, { tarifas: nuevasTarifas }, {
+                headers: { 'Content-Type': 'application/merge-patch+json' }
+            });
+            setTarifas(nuevasTarifas);
+        } catch (err) {
+            console.error('Error eliminando tarifa:', err);
         }
     };
 
@@ -247,10 +302,8 @@ export default function PanelTrabajador({ estilosIniciales, descripcionInicial =
                 <hr className="border-white/20" />
 
                 {/* ── DESCRIPCIÓN ── */}
-                <div>
-                    <label className="block text-white/70 text-xs mb-1 font-medium uppercase tracking-wide">
-                        Descripción
-                    </label>
+                <div className="bg-slate-700/30 p-5 rounded-xl border border-white/10 mb-4">
+                    <h3 className="text-white font-bold mb-4 text-sm tracking-wide">📝 Descripción del Perfil</h3>
                     <textarea
                         value={descripcion}
                         onChange={e => setDescripcion(e.target.value)}
@@ -258,13 +311,15 @@ export default function PanelTrabajador({ estilosIniciales, descripcionInicial =
                         rows={3}
                         className="w-full px-4 py-3 bg-slate-600/50 border border-white/20 rounded-lg text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300 resize-none"
                     />
-                    <button
-                        onClick={handleGuardarDescripcion}
-                        disabled={guardandoDesc || !trabajadorId}
-                        className="mt-2 w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold py-2.5 rounded-lg transition text-sm"
-                    >
-                        {guardandoDesc ? 'Guardando...' : 'Guardar Descripción'}
-                    </button>
+                    <div className="flex justify-end mt-4">
+                        <button
+                            onClick={handleGuardarConfig}
+                            disabled={guardandoDesc || !trabajadorId}
+                            className="bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold py-2 px-6 rounded-lg transition text-sm shadow-[0_0_15px_rgba(56,189,248,0.2)]"
+                        >
+                            {guardandoDesc ? 'Guardando...' : 'Guardar Descripción'}
+                        </button>
+                    </div>
                 </div>
 
                 <hr className="border-white/20" />
@@ -276,6 +331,90 @@ export default function PanelTrabajador({ estilosIniciales, descripcionInicial =
                 >
                     📅 Agenda
                 </button>
+
+                <hr className="border-white/20" />
+
+                {/* ── CONFIGURACIÓN DE TARIFAS Y TIEMPOS ── */}
+                <div className="bg-slate-700/30 p-5 rounded-xl border border-white/10 mb-4">
+                    <h3 className="text-white font-bold mb-4 text-sm tracking-wide flex items-center gap-2">
+                        <span>🏷️</span> Tus Tarifas y Tiempos
+                    </h3>
+
+                    {/* Formulario Añadir/Actualizar */}
+                    <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                        <div className="flex-1">
+                            <label className="block text-white/70 text-xs mb-1 font-medium uppercase tracking-wide">
+                                Tamaño (cm)
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={cmInput}
+                                onChange={e => setCmInput(Number(e.target.value))}
+                                className="w-full px-4 py-3 bg-slate-600/50 border border-white/20 rounded-lg text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-white/70 text-xs mb-1 font-medium uppercase tracking-wide">
+                                Minutos
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={minInput}
+                                onChange={e => setMinInput(Number(e.target.value))}
+                                className="w-full px-4 py-3 bg-slate-600/50 border border-white/20 rounded-lg text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-white/70 text-xs mb-1 font-medium uppercase tracking-wide">
+                                Precio Base (€)
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={precioInput}
+                                onChange={e => setPrecioInput(Number(e.target.value))}
+                                className="w-full px-4 py-3 bg-slate-600/50 border border-white/20 rounded-lg text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end mb-6">
+                        <button
+                            onClick={handleGuardarTarifa}
+                            disabled={guardandoTarifas || !trabajadorId}
+                            className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-2 px-6 rounded-lg transition text-sm shadow-[0_0_15px_rgba(22,163,74,0.3)]"
+                        >
+                            {guardandoTarifas ? 'Guardando...' : 'Guardar / Actualizar Tarifa'}
+                        </button>
+                    </div>
+
+                    {/* Lista visual de tarifas almacenadas */}
+                    {tarifas && tarifas.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-white/10">
+                            <h4 className="text-white/60 text-xs uppercase tracking-wide mb-3 font-semibold">Tus tarifas configuradas</h4>
+                            <div className="flex flex-col gap-2">
+                                {tarifas.map((t, index) => (
+                                    <div key={index} className="flex items-center justify-between bg-white/5 border border-white/10 px-4 py-3 rounded-lg hover:bg-white/10 transition">
+                                        <div className="flex gap-6 text-sm">
+                                            <span className="text-sky-300 font-bold w-12">{t.cm} cm</span>
+                                            <span className="text-white/80 w-24">{t.minutos} min</span>
+                                            <span className="text-green-300 font-bold">{t.precio} €</span>
+                                        </div>
+                                        <button
+                                            onClick={() => handleEliminarTarifa(t.cm)}
+                                            className="text-red-400 hover:text-white bg-red-900/40 hover:bg-red-600 px-3 py-1 rounded text-xs font-bold transition"
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

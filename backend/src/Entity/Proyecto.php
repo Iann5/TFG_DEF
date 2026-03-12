@@ -87,10 +87,17 @@ class Proyecto
     #[Groups(['proyecto:read'])]
     private Collection $valoracionProyectos;
 
+    /**
+     * @var Collection<int, Cita>
+     */
+    #[ORM\ManyToMany(targetEntity: Cita::class, mappedBy: 'proyectos')]
+    private Collection $citas;
+
     public function __construct()
     {
         $this->packs = new ArrayCollection();
         $this->valoracionProyectos = new ArrayCollection();
+        $this->citas = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -253,7 +260,7 @@ class Proyecto
 
         return $this;
     }
-    
+
     #[Groups(['proyecto:read'])]
     public function getMedia(): float
     {
@@ -270,10 +277,37 @@ class Proyecto
     }
 
     // envia el usuario del ID a React
-    #[Groups(['proyecto:read', 'estilo:read', 'trabajador:read'])] 
+    #[Groups(['proyecto:read', 'estilo:read', 'trabajador:read'])]
     public function getAutorUserId(): ?int
     {
         // Esto navega: Proyecto -> Autor(Trabajador) -> Usuario -> ID
         return $this->autor?->getUsuario()?->getId();
+    }
+
+    /**
+     * @return Collection<int, Cita>
+     */
+    public function getCitas(): Collection
+    {
+        return $this->citas;
+    }
+
+    public function addCita(Cita $cita): static
+    {
+        if (!$this->citas->contains($cita)) {
+            $this->citas->add($cita);
+            $cita->addProyecto($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCita(Cita $cita): static
+    {
+        if ($this->citas->removeElement($cita)) {
+            $cita->removeProyecto($this);
+        }
+
+        return $this;
     }
 }

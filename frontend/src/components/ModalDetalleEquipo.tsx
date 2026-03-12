@@ -29,7 +29,7 @@ interface RawValoracion {
     estrellas: number;
     comentario?: string;
     fecha: string;
-    usuario?: { nombre?: string };
+    usuario?: { nombre?: string; foto_perfil?: string; };
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -57,6 +57,7 @@ function mapRawVals(raw: RawValoracion[]): ValoracionDetalle[] {
         comentario: v.comentario,
         fecha: v.fecha,
         nombreUsuario: v.usuario?.nombre ?? 'Usuario',
+        fotoPerfil: v.usuario?.foto_perfil,
     }));
 }
 
@@ -130,9 +131,9 @@ export default function ModalDetalleEquipo({ trabajadorId, onClose }: Props) {
     const proyectosFiltrados = aplicarFiltros(proyectos, ordenTrabajos);
     const media = mediaValoraciones(valoraciones);
     const yaValoró = isLoggedIn && nombreUsuario != null && valoraciones.some(v => v.nombreUsuario === nombreUsuario);
-    const nombreArtista = trabajador?.usuario?.nombre 
-    ? `${trabajador.usuario.nombre} ${trabajador?.usuario?.apellidos || ''}` 
-    : 'Artista Desconocido';
+    const nombreArtista = trabajador?.usuario?.nombre
+        ? `${trabajador.usuario.nombre} ${trabajador?.usuario?.apellidos || ''}`
+        : 'Artista Desconocido';
     const email = trabajador?.usuario?.email ?? null;
     const telefono = trabajador?.usuario?.telefono ?? null;
     const imagen = trabajador?.usuario?.foto_perfil ?? null;

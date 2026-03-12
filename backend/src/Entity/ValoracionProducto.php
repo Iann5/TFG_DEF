@@ -33,7 +33,7 @@ class ValoracionProducto
     #[Groups(['valoracion_producto:read'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'valoracionProductos')]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['valoracion_producto:read'])]
     private ?User $usuario = null;
