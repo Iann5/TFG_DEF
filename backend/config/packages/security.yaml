@@ -42,6 +42,8 @@ security:
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS } # Login público
         - { path: ^/api/docs, roles: PUBLIC_ACCESS }  # Documentación pública
+        - { path: ^/api/contexts, roles: PUBLIC_ACCESS } # Necesario para que Swagger cargue
+        - { path: ^/api$, roles: PUBLIC_ACCESS } # (Fíjate en el $) Necesario para que cargue la URL base
         - { path: ^/api/users, roles: PUBLIC_ACCESS, methods: [POST] } # Registro público
         - { path: ^/api/trabajadors, methods: [GET], roles: PUBLIC_ACCESS }  # Ver trabajadores es público
         - { path: ^/api/proyectos, methods: [GET], roles: PUBLIC_ACCESS }    # Ver proyectos es público
@@ -54,4 +56,7 @@ security:
         - { path: ^/api/equipo, methods: [GET], roles: PUBLIC_ACCESS } # Ver equipo es público
         - { path: ^/api/estilos, methods: [GET], roles: PUBLIC_ACCESS } # Ver estilos es público
         - { path: ^/api/admin, roles: ROLE_ADMIN }  # Solo admins
-        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY } # Descomenta esto al final para proteger todo
+        # Por defecto: cualquier lectura (GET) es pública. Las operaciones sensibles se protegen
+        # con security en ApiResource (POST/PATCH/DELETE) o con reglas más específicas arriba.
+        - { path: ^/api, methods: [GET], roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }

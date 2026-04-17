@@ -4,7 +4,6 @@ import { AxiosError } from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import MultiSelect from '../components/MultiSelect';
-import PageBackground from '../components/PageBackground';
 import BotonesAdmin from '../components/BotonesAdmin';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -18,6 +17,12 @@ const ORDEN_OPTS = [
   { value: 'antiguo', label: 'Más antiguo' },
 ];
 
+const PlaceholderOscuro = () => (
+    <div className="bg-surface-container w-full h-full flex items-center justify-center border border-outline-variant/30 p-4 relative overflow-hidden group">
+      <div className="absolute inset-0 bg-halftone opacity-30"></div>
+      <span className="material-symbols-outlined text-outline-variant text-4xl relative z-10 group-hover:scale-110 transition-transform">image</span>
+    </div>
+);
 
 const Estilo = () => {
   const navigate = useNavigate();
@@ -31,7 +36,6 @@ const Estilo = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [orden, setOrden] = useState<string[]>(['az']);
-
 
   const cargar = async () => {
     try {
@@ -54,24 +58,24 @@ const Estilo = () => {
       if (Array.isArray(response.data)) setTrabajadores1(response.data);
     } catch (err) {
       if (err instanceof AxiosError) {
-        setError(`Error ${err.response?.status}: No se pudo obtener la información.`);
+        setError(`Error ${err.response?.status}: No se pudo obtener los trabajadores.`);
       } else {
-        setError('Error inesperado en la conexión.');
+        setError('Error inesperado en la conexión con trabajadores.');
       }
-    } finally {
-      setLoading(false);
     }
   };
 
-  useEffect(() => { cargar(); }, []);
-  useEffect(() => { cargarTrabajadores(); }, []);
+  useEffect(() => { 
+    cargar(); 
+    cargarTrabajadores(); 
+  }, []);
 
   const handleEliminar = async (id: number) => {
-    if (!confirm('¿Eliminar este estilo?')) return;
+    if (!confirm('¿Seguro que deseas eliminar este estilo permanentemente?')) return;
     try {
       await api.delete(`/estilos/${id}`);
       setEstilos(prev => prev.filter(e => e.id !== id));
-    } catch {/* silencioso */ }
+    } catch {/* silencioso */}
   };
 
   const estilosProcesados = (() => {
@@ -95,157 +99,204 @@ const Estilo = () => {
   })();
 
   return (
-    <div className="min-h-screen font-sans relative bg-[#1C1B28] overflow-hidden">
-      <PageBackground opacity={0.24} />
+    <div className="min-h-screen bg-background text-on-surface flex flex-col relative selection:bg-primary/30 selection:text-primary">
+      {/* Texture overlay */}
+      <div className="fixed inset-0 pointer-events-none mix-blend-overlay opacity-20 z-0 bg-[url('/noise.svg')]"></div>
 
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <Navbar />
+      <Navbar />
 
-        <main className="container mx-auto px-4 py-12 flex-grow space-y-16">
-          <div className="max-w-4xl mx-auto w-full flex flex-col md:flex-row items-center justify-center mb-10 gap-6 md:gap-120">
-            {/* Título */}
-            <h1 className="text-4xl font-light text-white">
-              Nuestros <span className="text-sky-500 font-bold">Estilos</span>
-            </h1>
+      <main className="flex-grow pt-32 pb-20 relative z-10 px-4 md:px-8">
+        <div className="max-w-[1400px] mx-auto">
+          {/* HEADER SECTION */}
+          <div className="mb-16 flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
+            <div className="relative">
+              <span className="font-label text-primary text-xs uppercase tracking-[0.3em] block mb-4">Catálogo de Disciplinas</span>
+              <h1 className="font-headline text-5xl md:text-7xl font-bold uppercase tracking-tight leading-none">
+                Estilos<br/>
+                <span className="text-outline-variant">Artísticos</span>
+              </h1>
+              {/* Decorative elements */}
+              <div className="absolute -left-4 top-0 w-1 h-32 bg-primary"></div>
+              <div className="absolute left-0 -top-4 w-12 h-1 bg-primary"></div>
+            </div>
 
-            {/* Botón añadir — solo trabajador/admin */}
             {puedeEditar && (
               <button
                 onClick={() => navigate('/crearEstilo')}
-                className="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl transition shadow-lg shadow-sky-900/20 active:scale-95"
+                className="group relative overflow-hidden bg-transparent border border-outline hover:border-primary text-on-surface hover:text-primary font-label text-xs uppercase tracking-widest py-4 px-8 rounded-sm transition-all duration-300"
               >
-                + Añadir Estilo
+                <div className="absolute inset-0 bg-primary/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                <span className="relative z-10 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  Añadir Estilo
+                </span>
               </button>
             )}
           </div>
 
-          {/* Buscador y Filtros */}
-          <div className="max-w-4xl mx-auto w-full bg-[#323444]/80 p-6 rounded-2xl border border-white/5 mb-10 flex flex-col md:flex-row gap-6 shadow-xl backdrop-blur-sm items-center">
-            <div className="flex-1 w-full relative">
+          {/* SEARCH AND FILTERS */}
+          <div className="glass-panel p-6 mb-16 flex flex-col md:flex-row gap-6">
+            <div className="flex-1 relative group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">
+                search
+              </span>
               <input
                 type="text"
-                placeholder="Buscar estilos por nombre o descripción..."
+                placeholder="Buscar por disciplina o técnica..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#1C1B28] text-white border border-[#3B82F6]/30 px-4 py-3 rounded-xl outline-none focus:border-sky-500 transition-colors"
+                className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-sm text-on-surface font-body text-sm pl-12 pr-4 py-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all placeholder-outline/50"
               />
             </div>
-            <div className="w-full md:w-64">
-              <MultiSelect
-                options={ORDEN_OPTS}
-                selected={orden}
-                onChange={setOrden}
-                placeholder="Ordenar por..."
-              />
+            <div className="w-full md:w-80 flex items-center gap-4">
+              <span className="material-symbols-outlined text-outline">tune</span>
+              <div className="flex-1">
+                <MultiSelect
+                  options={ORDEN_OPTS}
+                  selected={orden}
+                  onChange={setOrden}
+                  placeholder="Ordenar catálogo..."
+                />
+              </div>
             </div>
           </div>
 
-          {loading && <p className="text-white text-center text-xl mb-10">Cargando catálogo artístico...</p>}
-          {error && <p className="text-red-400 text-center bg-red-900/20 p-4 rounded-lg mb-10">{error}</p>}
-
-          {estilosProcesados.length === 0 && !loading && !error && (
-            <p className="text-white/60 text-center text-lg mb-10">No se encontraron estilos con esos parámetros.</p>
+          {/* LOADING & ERROR STATES */}
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-32 gap-4">
+              <span className="material-symbols-outlined text-primary text-4xl animate-spin">refresh</span>
+              <p className="font-label text-xs uppercase tracking-[0.2em] text-outline">Cargando Catálogo...</p>
+            </div>
+          )}
+          
+          {error && (
+            <div className="bg-error-container/20 border border-error/50 p-6 rounded-sm flex items-center gap-4 mb-12">
+              <span className="material-symbols-outlined text-error">error</span>
+              <p className="font-body text-error text-sm">{error}</p>
+            </div>
           )}
 
-          {estilosProcesados.map(estilo => {
-            // Construir array de hasta 3 fotos: imagenes[] tiene prioridad, si no usamos imagen
-            const fotos: (string | undefined)[] = [
-              ...(estilo.imagenes ?? []),
-              ...(!estilo.imagenes?.length && estilo.imagen ? [estilo.imagen] : []),
-            ].slice(0, 3);
-            // Rellenar hasta 3 slots con undefined (placeholders)
-            while (fotos.length < 3) fotos.push(undefined);
+          {estilosProcesados.length === 0 && !loading && !error && (
+            <div className="glass-panel p-16 text-center flex flex-col items-center gap-4">
+              <span className="material-symbols-outlined text-outline-variant text-5xl">visibility_off</span>
+              <p className="font-label text-xs uppercase tracking-widest text-[#8c909f]">No se encontraron estilos en el catálogo.</p>
+            </div>
+          )}
 
-            const trabajadores = estilo.trabajadores ?? [];
+          {/* STYLES GRID */}
+          <div className="space-y-24">
+            {estilosProcesados.map((estilo, index) => {
+              const fotos: (string | undefined)[] = [
+                ...(estilo.imagenes ?? []),
+                ...(!estilo.imagenes?.length && estilo.imagen ? [estilo.imagen] : []),
+              ].slice(0, 3);
+              while (fotos.length < 3) fotos.push(undefined);
 
-            return (
-              <section
-                key={estilo.id}
-                className="max-w-4xl mx-auto bg-[#4b4d57] rounded-xl p-6 shadow-2xl"
-              >
-                {/* Nombre */}
-                <div className="inline-block bg-[#E5E7EB] text-black font-bold px-5 py-1.5 rounded-lg text-xl mb-4 shadow-sm">
-                  {estilo.nombre}
-                </div>
+              const trabajadores = estilo.trabajadores ?? [];
+              const isEven = index % 2 === 0;
 
-                {/* Información */}
-                <div className="bg-[#D1D5DB] rounded-lg p-4 mb-6 min-h-[80px] flex items-center justify-center">
-                  <p className="text-gray-800 font-bold uppercase tracking-widest text-justify whitespace-pre-line w-full">
-                    {estilo.informacion || 'INFO'}
-                  </p>
-                </div>
-
-                {/* 3 fotos de ejemplo */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  {fotos.map((foto, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-[#9CA3AF] aspect-square rounded-xl flex items-center justify-center border-2 border-gray-400 overflow-hidden shadow-inner"
-                    >
-                      {foto ? (
-                        <img
-                          src={foto}
-                          alt={`${estilo.nombre} ejemplo ${idx + 1}`}
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <span className="text-gray-700 font-black text-3xl">IMG</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Trabajadores especializados */}
-                <div className="inline-block bg-[#D1D5DB] text-gray-800 font-bold px-4 py-1 rounded-md mb-4 text-sm">
-                  Trabajadores Especializados:
-                </div>
-
-                <div className="bg-[#D1D5DB] rounded-2xl p-5 flex flex-wrap gap-4 border-b-4 border-gray-400 min-h-[56px]">
-                  {trabajadores.length === 0 && (
-                    <span className="text-gray-500 text-sm italic">Sin trabajadores asignados aún.</span>
-                  )}
-
-                  {trabajadores.map((t: string | number | { id: number }, index: number) => {
-                    // 1. Obtenemos el ID de forma totalmente tipada (sin errores rojos)
-                    const tId = typeof t === 'object'
-                      ? t.id
-                      : parseInt(String(t).split('/').pop() || '0', 10);
-
-                    // 2. Cruzamos el ID con tu lista que tiene todos los datos completos
-                    const trabajadorCompleto = trabajadores1.find(trab => trab.id === tId);
-
-                    // 3. Extraemos el nombre y apellido reales
-                    const nombre = trabajadorCompleto?.usuario?.nombre ?? trabajadorCompleto?.nombre ?? 'Trabajador Desconocido';
-                    const apellidos = trabajadorCompleto?.usuario?.apellidos ?? '';
-
-                    return (
-                      <div
-                        key={tId || index}
-                        className="h-8 px-4 bg-[#7DD3FC] rounded-2xl shadow-md flex items-center text-gray-900 font-semibold text-sm"
-                      >
-                        {nombre} {apellidos}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Botones editar/eliminar — solo trabajador/admin */}
-                {puedeEditar && (
-                  <div className="mt-4 pt-4 border-t border-[#3B82F6]/30">
-                    <BotonesAdmin
-                      size="md"
-                      onEditar={() => navigate(`/editarEstilo/${estilo.id}`)}
-                      onEliminar={() => handleEliminar(estilo.id)}
-                    />
+              return (
+                <section
+                  key={estilo.id}
+                  className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 group"
+                >
+                  {/* Decorative number */}
+                  <div className="absolute -left-4 -top-8 text-[120px] font-headline font-black text-surface-container opacity-50 z-0 pointer-events-none select-none">
+                    {(index + 1).toString().padStart(2, '0')}
                   </div>
-                )}
-              </section>
-            );
-          })}
-        </main>
 
-        <Footer />
-      </div>
+                  {/* LEFT COLUMN: Info */}
+                  <div className={`lg:col-span-4 flex flex-col justify-center relative z-10 ${!isEven ? 'lg:order-2' : ''}`}>
+                    <div className="mb-6 flex items-center gap-3">
+                      <div className="h-[1px] w-12 bg-primary"></div>
+                      <span className="font-label text-[#8c909f] text-[10px] uppercase tracking-[0.2em]">Disciplina #{estilo.id}</span>
+                    </div>
+
+                    <h2 className="font-headline text-4xl font-bold uppercase tracking-wide mb-6">{estilo.nombre}</h2>
+                    
+                    <div className="prose prose-invert prose-sm mb-8">
+                      <p className="font-body text-on-surface-variant leading-relaxed text-sm text-justify">
+                        {estilo.informacion || 'No hay descripción detallada disponible para esta disciplina artística en nuestro estudio.'}
+                      </p>
+                    </div>
+
+                    {/* Especialistas Menu */}
+                    <div className="mt-auto">
+                      <h4 className="font-label text-xs uppercase tracking-widest text-outline mb-4 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[16px]">groups</span>
+                        Especialistas
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {trabajadores.length === 0 ? (
+                          <span className="text-[#8c909f] font-body text-xs italic">Sin artistas asignados.</span>
+                        ) : (
+                          trabajadores.map((t: string | number | { id: number }, idx: number) => {
+                            const tId = typeof t === 'object' ? t.id : parseInt(String(t).split('/').pop() || '0', 10);
+                            const trabajadorCompleto = trabajadores1.find(trab => trab.id === tId);
+                            const nombre = trabajadorCompleto?.usuario?.nombre ?? trabajadorCompleto?.nombre ?? 'Artista';
+
+                            return (
+                              <button
+                                key={tId || idx}
+                                onClick={() => navigate('/equipo')}
+                                className="bg-surface-container hover:bg-surface-container-highest border border-outline-variant/30 text-on-surface font-label text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-sm transition-colors flex items-center gap-2"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>
+                                {nombre}
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+
+                    {puedeEditar && (
+                      <div className="mt-8 pt-6 border-t border-outline-variant/20">
+                        <BotonesAdmin
+                          size="md"
+                          onEditar={() => navigate(`/editarEstilo/${estilo.id}`)}
+                          onEliminar={() => handleEliminar(estilo.id)}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* RIGHT COLUMN: Gallery */}
+                  <div className={`lg:col-span-8 relative z-10 ${!isEven ? 'lg:order-1' : ''}`}>
+                    <div className="grid grid-cols-12 gap-2 h-[400px] md:h-[500px]">
+                      {/* Main Large Image */}
+                      <div className="col-span-12 md:col-span-8 h-full bg-surface-container-highest rounded-sm border border-outline-variant/20 overflow-hidden relative group/img">
+                        <div className="absolute inset-0 bg-primary/20 mix-blend-overlay opacity-0 group-hover/img:opacity-100 transition-opacity z-10 duration-500 pointer-events-none"></div>
+                        {fotos[0] ? (
+                          <img src={fotos[0]} alt={`${estilo.nombre} principal`} className="w-full h-full object-cover filter grayscale group-hover/img:grayscale-0 transition-all duration-700" />
+                        ) : (
+                          <PlaceholderOscuro />
+                        )}
+                      </div>
+
+                      {/* Side Images Stack */}
+                      <div className="hidden md:flex col-span-4 flex-col gap-2 h-full min-h-0">
+                        {[1, 2].map((idx) => (
+                           <div key={idx} className="flex-1 min-h-0 bg-surface-container-highest rounded-sm border border-outline-variant/20 overflow-hidden relative group/img">
+                             <div className="absolute inset-0 bg-primary/20 mix-blend-overlay opacity-0 group-hover/img:opacity-100 transition-opacity z-10 duration-500 pointer-events-none"></div>
+                             {fotos[idx] ? (
+                               <img src={fotos[idx]} alt={`${estilo.nombre} ${idx + 1}`} className="w-full h-full object-cover filter grayscale group-hover/img:grayscale-0 transition-all duration-700 hover:scale-105" />
+                             ) : (
+                               <PlaceholderOscuro />
+                             )}
+                           </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 };

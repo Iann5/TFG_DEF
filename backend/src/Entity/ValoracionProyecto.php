@@ -6,6 +6,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use App\Repository\ValoracionProyectoRepository;
@@ -21,6 +23,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new GetCollection(),
         new Get(),
         new Post(processor: ValoracionProyectoProcessor::class, security: "is_granted('ROLE_USER')"),
+        new Patch(
+            processor: ValoracionProyectoProcessor::class,
+            security: "is_granted('ROLE_USER') and object.getUsuario() != null and object.getUsuario().getId() == user.getId()",
+            denormalizationContext: ['groups' => ['valoracion_proyecto:patch']],
+        ),
+        new Delete(
+            security: "is_granted('ROLE_USER') and object.getUsuario() != null and object.getUsuario().getId() == user.getId()",
+        ),
     ],
     normalizationContext: ['groups' => ['valoracion_proyecto:read']],
     denormalizationContext: ['groups' => ['valoracion_proyecto:write']],
@@ -44,11 +54,11 @@ class ValoracionProyecto
     private ?Proyecto $proyecto = null;
 
     #[ORM\Column]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_proyecto:write', 'proyecto:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_proyecto:write', 'valoracion_proyecto:patch', 'proyecto:read'])]
     private ?int $estrellas = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_proyecto:write'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_proyecto:write', 'valoracion_proyecto:patch'])]
     private ?string $comentario = null;
 
     #[ORM\Column]

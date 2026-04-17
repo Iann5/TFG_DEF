@@ -220,41 +220,47 @@ export default function AddProducto() {
             onSubmit={handleSubmit}
         >
             {loading ? (
-                <p className="text-center animate-pulse text-sky-400 font-bold">Cargando datos...</p>
+                <p className="text-center animate-pulse text-primary font-headline uppercase tracking-wide">Cargando datos...</p>
             ) : (
                 <>
-                    <div className="space-y-2">
-                        <label className="text-gray-400 text-sm font-bold uppercase tracking-wider block">Nombre del Producto</label>
+                    <div className="space-y-2 relative group flex flex-col items-start block overflow-visible mt-2">
+                        <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">
+                             Nombre del Producto
+                        </label>
                         <input
                             name="nombre"
                             type="text"
                             value={formData.nombre}
                             onChange={handleInputChange}
-                            className="w-full bg-[#1C1B28] border border-white/10 p-4 rounded-xl outline-none focus:border-sky-500 transition-all text-white"
+                            className="w-full bg-surface-container border border-outline-variant/30 p-3 font-body text-base outline-none focus:border-primary transition-colors text-on-surface placeholder:text-outline-variant/50 rounded-sm"
                             required
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-gray-400 text-sm font-bold uppercase tracking-wider block">Descripción</label>
+                    <div className="space-y-2 relative group flex flex-col items-start block overflow-visible mt-6">
+                        <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">
+                            Descripción
+                        </label>
                         <textarea
                             name="descripcion"
                             value={formData.descripcion}
                             onChange={handleInputChange}
-                            className="w-full bg-[#1C1B28] border border-white/10 p-4 rounded-xl outline-none focus:border-sky-500 transition-all h-28 resize-none text-white"
+                            className="w-full bg-surface-container border border-outline-variant/30 p-3 font-body text-base outline-none focus:border-primary transition-colors h-32 resize-none text-on-surface placeholder:text-outline-variant/50 rounded-sm"
                             required
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-gray-400 text-sm font-bold uppercase tracking-wider block">Stock Disponible</label>
+                    <div className="space-y-2 relative group flex flex-col items-start block overflow-visible mt-6 mb-6">
+                        <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">
+                            Stock Disponible
+                        </label>
                         <input
                             name="stock"
                             type="number"
                             value={formData.stock}
                             onChange={handleInputChange}
                             min="0"
-                            className="w-full bg-[#1C1B28] border border-white/10 p-4 rounded-xl outline-none focus:border-sky-500 transition-all text-white"
+                            className="w-full bg-surface-container border border-outline-variant/30 p-3 font-body text-base outline-none focus:border-primary transition-colors text-on-surface placeholder:text-outline-variant/50 rounded-sm"
                             required
                         />
                     </div>

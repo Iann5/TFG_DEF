@@ -20,6 +20,7 @@ class Pack
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['cita:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'packs')]
@@ -33,12 +34,14 @@ class Pack
     private ?Proyecto $proyecto = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['cita:read'])]
     private ?string $titulo = null;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $descripcion = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['cita:read', 'pack:read'])]
     private ?string $imagen = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
@@ -265,7 +268,7 @@ class Pack
     public function removeValoracionPack(ValoracionPack $valoracionPack): static
     {
         if ($this->valoracionPacks->removeElement($valoracionPack)) {
-            // set the owning side to null (unless already changed)
+            
             if ($valoracionPack->getPack() === $this) {
                 $valoracionPack->setPack(null);
             }

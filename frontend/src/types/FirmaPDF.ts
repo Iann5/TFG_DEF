@@ -16,5 +16,11 @@ interface PDFFormData {
 export interface PDFSignerProps {
     formData: PDFFormData;
     trabajador: TrabajadorSimplificado | null;
-    onSignComplete: (signatures: { responsabilidad: string, privacidad?: string }) => void;
+    onSignComplete: (state: {
+        responsabilidad?: string;
+        privacidad?: string;
+        descargadoResponsabilidad: boolean;
+        descargadoPrivacidad?: boolean;
+        compromisoEntregar: boolean;
+    }) => void;
 }

@@ -11,64 +11,82 @@ interface Props {
 
 export default function EditarPanel({ userData, onCambiar, onLogout, onEliminar }: Props) {
     return (
-        <div className="bg-slate-700/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 flex flex-col gap-4">
-            <h2 className="text-3xl font-bold text-white mb-1">Editar</h2>
-            <hr className="border-white/40 mb-2" />
+        <div className="flex flex-col gap-5 h-full">
+            <h2 className="text-2xl font-headline font-bold text-on-surface mb-2 flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">manage_accounts</span>
+                Ajustes de Cuenta
+            </h2>
+            <div className="w-full h-px bg-outline-variant/30 mb-2"></div>
 
             {/* Teléfono */}
-            <div className="flex items-center gap-3 bg-slate-600/50 rounded-lg px-4 py-3 border border-white/10">
-                <span className="text-white/80 text-sm flex-1 truncate">
-                    {userData?.telefono ? `+34 ${userData.telefono.slice(0, 6)}....` : 'Sin teléfono'}
-                </span>
+            <div className="flex items-center gap-4 bg-surface-container-highest/50 rounded-sm px-5 py-4 border border-outline-variant/20 hover:border-primary/50 transition-colors group">
+                <div className="flex-1 min-w-0">
+                    <p className="font-label text-[10px] uppercase tracking-[0.2em] text-[#8c909f] mb-1">Teléfono</p>
+                    <p className="text-on-surface text-sm font-body truncate">
+                        {userData?.telefono ? `+34 ${userData.telefono.slice(0, 6)}•••` : 'No especificado'}
+                    </p>
+                </div>
                 <button
                     onClick={() => onCambiar('telefono')}
-                    className="bg-slate-500 hover:bg-slate-400 text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition shrink-0"
+                    className="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10"
+                    title="Cambiar Teléfono"
                 >
-                    Cambiar Teléfono
+                    <span className="material-symbols-outlined text-sm">edit</span>
                 </button>
             </div>
 
             {/* Email */}
-            <div className="flex items-center gap-3 bg-slate-600/50 rounded-lg px-4 py-3 border border-white/10">
-                <span className="text-white/80 text-sm flex-1 truncate">
-                    {userData?.email ?? 'Sin email'}
-                </span>
+            <div className="flex items-center gap-4 bg-surface-container-highest/50 rounded-sm px-5 py-4 border border-outline-variant/20 hover:border-primary/50 transition-colors group">
+                <div className="flex-1 min-w-0">
+                    <p className="font-label text-[10px] uppercase tracking-[0.2em] text-[#8c909f] mb-1">Correo Electrónico</p>
+                    <p className="text-on-surface text-sm font-body truncate">
+                        {userData?.email ?? 'No especificado'}
+                    </p>
+                </div>
                 <button
                     onClick={() => onCambiar('email')}
-                    className="bg-slate-500 hover:bg-slate-400 text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition shrink-0"
+                    className="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10"
+                    title="Cambiar Email"
                 >
-                    Cambiar Email
+                    <span className="material-symbols-outlined text-sm">edit</span>
                 </button>
             </div>
 
             {/* Contraseña */}
-            <div className="flex items-center gap-3 bg-slate-600/50 rounded-lg px-4 py-3 border border-white/10">
-                <span className="text-white/80 text-sm flex-1">••••••••••••••</span>
+            <div className="flex items-center gap-4 bg-surface-container-highest/50 rounded-sm px-5 py-4 border border-outline-variant/20 hover:border-primary/50 transition-colors group">
+                <div className="flex-1 min-w-0">
+                    <p className="font-label text-[10px] uppercase tracking-[0.2em] text-[#8c909f] mb-1">Contraseña</p>
+                    <p className="text-on-surface text-sm font-body tracking-[0.3em]">
+                        ••••••••
+                    </p>
+                </div>
                 <button
                     onClick={() => onCambiar('password')}
-                    className="bg-slate-500 hover:bg-slate-400 text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition shrink-0"
+                    className="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10"
+                    title="Cambiar Contraseña"
                 >
-                    Cambiar Contraseña
+                    <span className="material-symbols-outlined text-sm">edit</span>
                 </button>
             </div>
+
+            <div className="flex-1" />
 
             {/* Cerrar sesión */}
             <button
                 onClick={onLogout}
-                className="w-full bg-blue-800 hover:bg-blue-900 border-2 border-blue-500 text-white font-bold py-3.5 rounded-xl transition text-base mt-2"
+                className="w-full mt-4 bg-surface-container hover:bg-surface-container-low text-on-surface border border-outline-variant/30 font-label tracking-widest text-xs uppercase py-3.5 rounded-sm transition-all flex items-center justify-center gap-2 hover:border-on-surface"
             >
+                <span className="material-symbols-outlined text-sm">logout</span>
                 Cerrar Sesión
             </button>
 
             {/* Eliminar cuenta */}
             <button
                 onClick={onEliminar}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl transition text-base"
+                className="w-full bg-error/10 hover:bg-error text-error hover:text-on-error border border-error/30 font-label tracking-widest text-xs uppercase py-3.5 rounded-sm transition-all flex items-center justify-center gap-2 mt-2"
             >
-                Eliminar Cuenta
+                Eliminar Cuenta Definitivamente
             </button>
-
-            <div className="flex-1" />
         </div>
     );
 }

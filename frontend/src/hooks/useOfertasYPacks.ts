@@ -14,6 +14,7 @@ import {
 export interface ItemPromocionalExtra extends ItemPromocional {
     autorNombre?: string;
     autorId?: number;
+    stock?: number;
 }
 
 function calcularMediaPromo(vals: ValoracionBase[] | undefined, mediaDirecta?: number | null): number {
@@ -58,6 +59,7 @@ export default function useOfertasYPacks() {
                     imagenes: p.imagenes || [],
                     precioOriginal: p.precioOriginal || 0,
                     precioOferta: p.precioOferta ?? null,
+                    stock: p.stock ?? 0,
                     tipo: tipoCategoria,
                     tipoOriginal: 'pack',
                     esPack: true,
@@ -79,6 +81,7 @@ export default function useOfertasYPacks() {
                     imagenes: p.imagenes || [],
                     precioOriginal: p.precio_original || 0,
                     precioOferta: p.precio_oferta ?? null,
+                    stock: p.stock ?? 0,
                     tipo: 'producto' as CategoriaPromo,
                     tipoOriginal: 'producto',
                     esPack: false,

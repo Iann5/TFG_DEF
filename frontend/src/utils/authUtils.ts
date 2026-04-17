@@ -80,3 +80,13 @@ export function getUserPhotoKey(): string | null {
     if (!email) return null;
     return `userPhoto_${email}`;
 }
+
+/**
+ * Devuelve la clave de localStorage para los favoritos del usuario actual.
+ * Solo los usuarios autenticados pueden tener favoritos.
+ * Devuelve null si no hay usuario validado.
+ */
+export function getFavoritesStorageKey(): string | null {
+    const storedUserId = localStorage.getItem('userId');
+    return storedUserId ? `mis_favoritos_plantillas_${storedUserId}` : null;
+}

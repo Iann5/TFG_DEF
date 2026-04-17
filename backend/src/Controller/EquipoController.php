@@ -20,9 +20,14 @@ class EquipoController extends AbstractController
         /** @var Trabajador[] $trabajadores */
         $trabajadores = $repo->findAll();
 
-        $data = array_map(function (Trabajador $t) {
+        $data = [];
+        foreach ($trabajadores as $t) {
             $u = $t->getUsuario();
-            return [
+            if ($u && !in_array('ROLE_TRABAJADOR', $u->getRoles())) {
+                continue;
+            }
+
+            $data[] = [
                 'id' => $t->getId(),
                 'nombre' => $u ? trim($u->getNombre() . ' ' . $u->getApellidos()) : 'Sin nombre',
                 'descripcion' => $t->getDescripcion() ?? '',
@@ -31,7 +36,7 @@ class EquipoController extends AbstractController
                     fn($e) => ['id' => $e->getId(), 'nombre' => $e->getNombre()]
                 )->getValues(),
             ];
-        }, $trabajadores);
+        }
 
         return $this->json($data);
     }

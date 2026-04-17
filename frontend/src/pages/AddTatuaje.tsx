@@ -21,6 +21,7 @@ interface ProyectoAPI {
     estilo?: string | { id: number }; // Puede venir como IRI o como objeto
     precio_original?: number;
     precio_oferta?: number | null;
+    descripcion?: string | null;
     imagen?: string;
 }
 
@@ -28,8 +29,9 @@ interface ProyectoPayload {
     nombre: string;
     tipo: string;
     estilo: string; // Formato IRI: /api/estilos/id
-    precioOriginal: number;
-    precioOferta: number | null;
+    precio_original: number;
+    precio_oferta: number | null;
+    descripcion?: string | null;
     imagen?: string;
     fecha_subida?: string;
 }
@@ -46,6 +48,7 @@ export default function AddTatuaje() {
         tipo: 'Tatuaje',
         precioOriginal: '',
         precioOferta: '',
+        descripcionOferta: '',
     });
 
     const [archivo, setArchivo] = useState<File | null>(null);
@@ -87,7 +90,8 @@ export default function AddTatuaje() {
                     tituloTatuaje: p.nombre || '',
                     tipo: p.tipo || 'Tatuaje',
                     precioOriginal: p.precio_original?.toString() || '',
-                    precioOferta: p.precio_oferta?.toString() || ''
+                    precioOferta: p.precio_oferta?.toString() || '',
+                    descripcionOferta: p.descripcion || ''
                 });
 
                 if (p.precio_original && p.precio_oferta) {
@@ -134,8 +138,9 @@ export default function AddTatuaje() {
                 nombre: formData.tituloTatuaje,
                 tipo: formData.tipo,
                 estilo: `/api/estilos/${formData.estiloId}`,
-                precioOriginal: parseFloat(formData.precioOriginal.replace(',', '.')),
-                precioOferta: formData.precioOferta ? parseFloat(formData.precioOferta.replace(',', '.')) : null
+                precio_original: parseFloat(formData.precioOriginal.replace(',', '.')),
+                precio_oferta: formData.precioOferta ? parseFloat(formData.precioOferta.replace(',', '.')) : null,
+                descripcion: formData.descripcionOferta?.trim() || null
             };
 
             if (imagenBase64) {
@@ -163,7 +168,9 @@ export default function AddTatuaje() {
             setTimeout(() => navigate('/proyecto'), 1500);
         } catch (err) {
             if (err instanceof AxiosError) {
-                setMensaje({ tipo: 'error', texto: `Error ${err.response?.status}: No se pudo procesar.` });
+                const backendError = err.response?.data?.detail || err.response?.data?.message || err.message;
+                setMensaje({ tipo: 'error', texto: `Error: ${backendError}` });
+                console.error("Detalle del error del backend:", err.response?.data);
             }
         } finally {
             setEnviando(false);
@@ -201,11 +208,13 @@ export default function AddTatuaje() {
             onSubmit={handleSubmit}
         >
             {loading ? (
-                <p className="text-center animate-pulse text-sky-400 font-bold">Cargando datos...</p>
+                <p className="text-center animate-pulse text-primary font-headline uppercase tracking-wide">Cargando datos...</p>
             ) : (
                 <>
-                    <div className="space-y-2">
-                        <label className="text-gray-400 text-sm font-bold uppercase tracking-wider block">Título del Proyecto</label>
+                    <div className="space-y-2 relative group flex flex-col items-start block overflow-visible">
+                        <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">
+                            Título del Proyecto
+                        </label>
                         <input
                             type="text"
                             name="tituloTatuaje"
@@ -213,46 +222,53 @@ export default function AddTatuaje() {
                             placeholder="Ej: Dragón Japonés"
                             onChange={handleInputChange}
                             required
-                            className="w-full bg-[#1C1B28] border border-white/10 p-4 rounded-xl outline-none focus:border-sky-500 transition-all text-white placeholder-gray-600"
+                            className="w-full bg-surface-container border border-outline-variant/30 p-3 font-body text-base outline-none focus:border-primary transition-colors text-on-surface placeholder:text-outline-variant/50 rounded-sm w-[99%]"
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-gray-400 text-sm font-bold uppercase tracking-wider block">Estilo</label>
-                            <select
-                                name="estiloId"
-                                value={formData.estiloId}
-                                onChange={handleInputChange}
-                                disabled={loadingEstilos || estilos.length === 0}
-                                required
-                                className="w-full bg-[#1C1B28] border border-white/10 p-4 rounded-xl outline-none focus:border-sky-500 transition-all text-white appearance-none cursor-pointer disabled:opacity-50"
-                            >
-                                <option value="" disabled>
-                                    {loadingEstilos ? 'Cargando estilos...' : 'Selecciona un estilo'}
-                                </option>
-                                {estilos.map(estilo => (
-                                    <option key={estilo.id} value={estilo.id.toString()}>
-                                        {estilo.nombre}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2 relative group flex flex-col items-start block overflow-visible">
+                            <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">
+                                Estilo
+                            </label>
+                            <div className="relative w-[99%]">
+                                <select
+                                    name="estiloId"
+                                    value={formData.estiloId}
+                                    onChange={handleInputChange}
+                                    disabled={loadingEstilos || estilos.length === 0}
+                                    required
+                                    className="w-full bg-surface-container border border-outline-variant/30 p-3 font-body text-base outline-none focus:border-primary transition-colors text-on-surface appearance-none cursor-pointer disabled:opacity-50 rounded-sm"
+                                >
+                                    <option value="" disabled>
+                                        {loadingEstilos ? 'Cargando estilos...' : 'Selecciona un estilo'}
                                     </option>
-                                ))}
-                            </select>
+                                    {estilos.map(estilo => (
+                                        <option key={estilo.id} value={estilo.id.toString()}>
+                                            {estilo.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline-variant">expand_more</span>
+                            </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-gray-400 text-sm font-bold uppercase tracking-wider block">Tipo</label>
-                            <div className="flex gap-4 p-4 bg-[#1C1B28] border border-white/10 rounded-xl h-[58px] items-center">
+                        <div className="space-y-2 relative group flex flex-col items-start block overflow-visible z-10 w-[99%]">
+                            <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">
+                                Tipo
+                            </label>
+                            <div className="flex gap-6 p-3 bg-surface-container/50 border border-outline-variant/30 items-center justify-start rounded-sm z-0 relative">
                                 {(['Tatuaje', 'Plantilla'] as const).map((t) => (
-                                    <label key={t} className="flex items-center gap-2 cursor-pointer group">
+                                    <label key={t} className="flex items-center gap-3 cursor-pointer group/radio">
                                         <input
                                             type="radio"
                                             name="tipo"
                                             value={t}
                                             checked={formData.tipo === t}
                                             onChange={handleInputChange}
-                                            className="w-4 h-4 accent-sky-500 cursor-pointer"
+                                            className="w-4 h-4 accent-primary cursor-pointer border-outline-variant"
                                         />
-                                        <span className="text-sm font-semibold text-gray-300 group-hover:text-white transition-colors">{t}</span>
+                                        <span className={`text-sm font-label tracking-wide uppercase transition-colors ${formData.tipo === t ? 'text-primary' : 'text-on-surface-variant group-hover/radio:text-on-surface'}`}>{t}</span>
                                     </label>
                                 ))}
                             </div>
@@ -274,6 +290,25 @@ export default function AddTatuaje() {
                         onPrecioOriginalChange={handleInputChange}
                         onPorcentajeChange={handlePorcentajeChange}
                     />
+
+                    {/* Descripción (si hay oferta, describe condiciones; si no, orienta tamaño/precio) */}
+                    <div className="space-y-2 relative group flex flex-col items-start block overflow-visible">
+                        <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">
+                            {formData.precioOferta ? 'Descripción de la oferta' : 'Descripción (orientación tamaño/precio)'}
+                        </label>
+                        <input
+                            type="text"
+                            name="descripcionOferta"
+                            value={formData.descripcionOferta}
+                            onChange={handleInputChange}
+                            placeholder={
+                                formData.precioOferta
+                                    ? 'Esa oferta se aplica a partir de 10cm de tamaño, si lo quieres más grande se te aplicará la misma oferta pero el precio sube'
+                                    : 'Ej: El precio corresponde aprox. a 10cm. Para tamaños mayores el precio sube según el diseño.'
+                            }
+                            className="w-full bg-surface-container border border-outline-variant/30 p-3 font-body text-base outline-none focus:border-primary transition-colors text-on-surface placeholder:text-outline-variant/50 rounded-sm w-[99%]"
+                        />
+                    </div>
 
                     <FormSubmitButton
                         loading={enviando}

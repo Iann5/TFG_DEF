@@ -10,18 +10,20 @@ interface FormImageUploadProps {
 
 export default function FormImageUpload({ archivo, imagenPrevia, onChange, isRequired, label = "Imagen del Proyecto" }: FormImageUploadProps) {
     return (
-        <div className="space-y-2">
-            <label className="text-gray-400 text-sm font-bold uppercase tracking-wider block">{label}</label>
-            <div className="flex items-center gap-4 p-4 bg-[#1C1B28] border border-white/10 rounded-xl overflow-hidden">
+        <div className="space-y-2 relative group">
+            <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">
+                {label}
+            </label>
+            <div className="flex items-center gap-6 p-4 bg-surface-container/50 border border-outline-variant/30 rounded-sm overflow-hidden flex-wrap sm:flex-nowrap group-hover:border-primary/50 transition-colors">
                 {(archivo || imagenPrevia) ? (
                     <img
                         src={archivo ? URL.createObjectURL(archivo) : imagenPrevia as string}
-                        className="w-16 h-16 object-cover rounded-lg border border-sky-500/50 shrink-0"
+                        className="w-24 h-24 object-cover border border-primary/50 shrink-0 transform group-hover:scale-105 transition-transform"
                         alt="Preview"
                     />
                 ) : (
-                    <div className="w-16 h-16 bg-white/5 rounded-lg border border-white/10 border-dashed flex items-center justify-center shrink-0">
-                        <span className="text-xs text-gray-500">IMG</span>
+                    <div className="w-24 h-24 bg-surface-container border border-outline-variant/50 border-dashed flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-3xl text-outline-variant/50 font-light">add_photo_alternate</span>
                     </div>
                 )}
                 <input
@@ -29,7 +31,7 @@ export default function FormImageUpload({ archivo, imagenPrevia, onChange, isReq
                     accept="image/*"
                     required={isRequired}
                     onChange={onChange}
-                    className="text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-sky-500/10 file:text-sky-400 hover:file:bg-sky-500/20 cursor-pointer w-full"
+                    className="font-body text-sm text-on-surface-variant file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-label file:uppercase file:tracking-[0.1em] file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:transition-colors file:rounded-sm file:cursor-pointer cursor-pointer w-full focus:outline-none"
                 />
             </div>
         </div>

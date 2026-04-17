@@ -11,6 +11,8 @@ export interface ValoracionDetalle {
   fecha: string;
   nombreUsuario?: string;
   fotoPerfil?: string;
+  /** Id del usuario autor; sirve para mostrar editar/eliminar solo en reseñas propias */
+  usuarioId?: number;
 }
 
 export interface RawValoracion {
@@ -18,5 +20,5 @@ export interface RawValoracion {
   estrellas: number;
   comentario?: string;
   fecha: string;
-  usuario?: { nombre?: string; foto_perfil?: string; };
+  usuario?: { id?: number; nombre?: string; foto_perfil?: string; };
 }

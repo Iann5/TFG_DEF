@@ -17,27 +17,31 @@ interface FormLayoutProps {
 
 export default function FormLayout({ titlePrefix, titleHighlight, mensaje, onSubmit, children }: FormLayoutProps) {
     return (
-        <div className="bg-[#1C1B28] text-white relative min-h-screen flex flex-col font-sans">
-            <div
-                className="fixed inset-0 z-0 opacity-20 pointer-events-none"
-                style={{ backgroundImage: "url('/paneles.jpg')", backgroundSize: 'cover', filter: 'invert(1)' }}
-            ></div>
+        <div className="bg-background text-on-surface relative min-h-screen flex flex-col selection:bg-primary/30 selection:text-primary">
+            {/* Texture overlay */}
+            <div className="fixed inset-0 pointer-events-none mix-blend-overlay opacity-20 z-0 bg-[url('/noise.svg')]"></div>
 
             <div className="relative z-10 flex flex-col flex-grow">
                 <Navbar />
 
-                <main className="flex-grow flex flex-col items-center py-12 px-6">
-                    <div className="w-full max-w-2xl bg-[#323444]/80 backdrop-blur-md border border-white/5 p-8 rounded-3xl shadow-2xl">
-
-                        <header className="mb-8 text-center">
-                            <h1 className="text-3xl font-light uppercase tracking-widest">
-                                {titlePrefix} <span className="text-sky-500 font-bold">{titleHighlight}</span>
+                <main className="flex-grow flex flex-col items-center pt-32 pb-20 px-6">
+                    <div className="w-full max-w-3xl glass-panel p-8 sm:p-12 relative overflow-hidden">
+                        
+                        <header className="mb-10 relative">
+                            <span className="font-label text-primary text-[10px] uppercase tracking-[0.3em] block mb-2">
+                                PANEL DE ADMINISTRACIÓN
+                            </span>
+                            <h1 className="font-headline text-4xl sm:text-5xl tracking-wide uppercase flex items-center gap-4 border-b border-outline-variant/30 pb-6">
+                                {titlePrefix} <span className="text-primary">{titleHighlight}</span>
                             </h1>
                         </header>
 
-                        <form onSubmit={onSubmit} className="space-y-6">
+                        <form onSubmit={onSubmit} className="space-y-8 relative z-10">
                             {mensaje && (
-                                <div className={`p-4 rounded-xl text-center font-bold transition-all ${mensaje.tipo === 'exito' ? 'bg-green-500/20 text-green-400 border border-green-500/50' : 'bg-red-500/20 text-red-400 border border-red-500/50'}`}>
+                                <div className={`p-4 border font-body text-sm flex items-center gap-3 ${mensaje.tipo === 'exito' ? 'bg-primary/10 text-primary border-primary/30' : 'bg-error/10 text-error border-error/30'}`}>
+                                    <span className="material-symbols-outlined text-[20px]">
+                                        {mensaje.tipo === 'exito' ? 'check_circle' : 'error'}
+                                    </span>
                                     {mensaje.texto}
                                 </div>
                             )}

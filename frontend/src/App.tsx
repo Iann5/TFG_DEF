@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -22,14 +23,22 @@ import FormularioEstilo from './pages/FormularioEstilo';
 import DetalleProyecto from './pages/DetalleProyecto';
 import DetalleProducto from './pages/DetalleProducto';
 import DetallePack from './pages/DetallePack';
+import GestionRoles from './pages/GestionRoles';
 import Agenda from './pages/Agenda';
 import VistaDia from './pages/VistaDia';
+import ListaTrabajadoresAgenda from './pages/ListaTrabajadoresAgenda';
+import Carrito from './pages/Carrito';
+import Checkout from './pages/Checkout';
+import PoliticasPrivacidad from './pages/PoliticasPrivacidad';
+import Reembolso from './pages/Reembolso';
+import Buscar from './pages/Buscar';
 
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+      <CartProvider>
+        <BrowserRouter>
+          <Routes>
           {/* ─── Rutas públicas (accesibles por todos) ─── */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -44,12 +53,17 @@ function App() {
           <Route path='/informacion' element={<Informacion />} />
           <Route path='/plantillasDemandadas' element={<PlantillasDemandadas />} />
           <Route path='/ProyectosMasGustados' element={<ProyectosMasGustados />} />
+          <Route path='/carrito' element={<Carrito />} />
           <Route path="/merchandising/pack/:id" element={<DetallePack />} />
+          <Route path="/privacidad" element={<PoliticasPrivacidad />} />
+          <Route path="/reembolso" element={<Reembolso />} />
+          <Route path="/buscar" element={<Buscar />} />
 
           {/* ─── Rutas para todos los usuarios autenticados ─── */}
           <Route element={<ProtectedRoute allowedRoles={['ROLE_USER', 'ROLE_TRABAJADOR', 'ROLE_ADMIN']} />}>
             <Route path='/perfil' element={<Perfil />} />
             <Route path='/cita' element={<ReservarCita />} />
+            <Route path='/checkout' element={<Checkout />} />
           </Route>
 
           {/* ─── Rutas para Trabajador y Admin ─── */}
@@ -63,16 +77,20 @@ function App() {
             <Route path='/crearPack' element={<CrearPack />} />
             <Route path='/editarPack/:id' element={<CrearPack />} />
             <Route path='/agenda' element={<Agenda />} />
+            <Route path='/agenda/:trabajadorId' element={<Agenda />} />
             <Route path='/agenda/dia/:fecha' element={<VistaDia />} />
+            <Route path='/agenda/:trabajadorId/dia/:fecha' element={<VistaDia />} />
           </Route>
 
           {/* ─── Rutas solo para Admin ─── */}
           <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN']} />}>
+            <Route path='/admin/agenda' element={<ListaTrabajadoresAgenda />} />
             <Route path='/historial' element={<Historial />} />
-            <Route path='/gestionRoles' element={<div className="p-8 text-white">Gestión de Roles (Admin)</div>} />
+            <Route path='/gestionRoles' element={<GestionRoles />} />
           </Route>
         </Routes>
       </BrowserRouter>
+      </CartProvider>
     </AuthProvider>
   );
 }

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { getUserRoles, getHighestRole, isTokenExpired } from '../utils/authUtils';
+import api from '../services/api';
 
 interface AuthContextType {
     isLoggedIn: boolean;
@@ -24,27 +25,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isInitializing, setIsInitializing] = useState(true);
 
-    const refreshAuth = () => {
+    const refreshAuth = async () => {
         const token = localStorage.getItem('token');
-        if (token && !isTokenExpired()) {
-            const userRoles = getUserRoles();
-            setRoles(userRoles);
-            setIsLoggedIn(true);
-        } else {
+        if (!token || isTokenExpired()) {
             if (token && isTokenExpired()) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('userPhoto');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userName');
             }
             setRoles([]);
             setIsLoggedIn(false);
+            setIsInitializing(false);
+            return;
         }
-        setIsInitializing(false);
+
+        // Hay token válido: marcamos sesión activa y refrescamos roles desde backend (/me)
+        setIsLoggedIn(true);
+
+        try {
+            const meRes = await api.get('/me');
+            const backendRoles = meRes.data?.roles;
+            if (Array.isArray(backendRoles)) {
+                setRoles(backendRoles);
+            } else {
+                setRoles(getUserRoles());
+            }
+        } catch {
+            // Fallback al JWT si /me falla temporalmente
+            setRoles(getUserRoles());
+        } finally {
+            setIsInitializing(false);
+        }
     };
 
     useEffect(() => {
-        refreshAuth();
-        window.addEventListener('storage', refreshAuth);
-        return () => window.removeEventListener('storage', refreshAuth);
+        void refreshAuth();
+
+        const handleStorage = () => { void refreshAuth(); };
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                void refreshAuth();
+            }
+        };
+        const handleFocus = () => { void refreshAuth(); };
+
+        window.addEventListener('storage', handleStorage);
+        document.addEventListener('visibilitychange', handleVisibility);
+        window.addEventListener('focus', handleFocus);
+
+        const interval = window.setInterval(() => {
+            void refreshAuth();
+        }, 60000);
+
+        return () => {
+            window.removeEventListener('storage', handleStorage);
+            document.removeEventListener('visibilitychange', handleVisibility);
+            window.removeEventListener('focus', handleFocus);
+            window.clearInterval(interval);
+        };
     }, []);
 
     const hasRole = (role: string) => roles.includes(role);

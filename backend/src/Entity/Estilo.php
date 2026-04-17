@@ -151,7 +151,7 @@ class Estilo
     public function removeProyecto(Proyecto $proyecto): static
     {
         if ($this->proyectos->removeElement($proyecto)) {
-            // set the owning side to null (unless already changed)
+            
             if ($proyecto->getEstilo() === $this) {
                 $proyecto->setEstilo(null);
             }

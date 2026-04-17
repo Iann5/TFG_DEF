@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { jsPDF } from 'jspdf';
-import { Download, RotateCcw, Eye } from 'lucide-react';
 import { type PDFSignerProps } from '../types/FirmaPDF';
 
 export default function PDFSigner({ formData, trabajador, onSignComplete }: PDFSignerProps) {
@@ -10,6 +9,7 @@ export default function PDFSigner({ formData, trabajador, onSignComplete }: PDFS
     const [responsabilidadFirmado, setResponsabilidadFirmado] = useState<boolean>(false);
     const [privacidadFirmado, setPrivacidadFirmado] = useState<boolean>(false);
     const [pdfsDescargados, setPdfsDescargados] = useState({ resp: false, priv: false });
+    const [compromisoEntregar, setCompromisoEntregar] = useState(false);
 
     const [prevResponsabilidad, setPrevResponsabilidad] = useState<string>('');
     const [prevPrivacidad, setPrevPrivacidad] = useState<string>('');
@@ -94,12 +94,20 @@ export default function PDFSigner({ formData, trabajador, onSignComplete }: PDFS
     // Actualizar previsualizaciones iniciales
     useEffect(() => {
         const docResp = crearDocResponsabilidad();
-        setPrevResponsabilidad(docResp.output('datauristring'));
+        const urlResp = URL.createObjectURL(docResp.output('blob'));
+        setPrevResponsabilidad(urlResp);
 
+        let urlPriv: string | undefined;
         if (necesitaPrivacidad) {
             const docPriv = crearDocPrivacidad();
-            setPrevPrivacidad(docPriv.output('datauristring'));
+            urlPriv = URL.createObjectURL(docPriv.output('blob'));
+            setPrevPrivacidad(urlPriv);
         }
+
+        return () => {
+            URL.revokeObjectURL(urlResp);
+            if (urlPriv) URL.revokeObjectURL(urlPriv);
+        };
     }, [formData, trabajador, necesitaPrivacidad]);
 
     // Limpiar firmas
@@ -122,176 +130,173 @@ export default function PDFSigner({ formData, trabajador, onSignComplete }: PDFS
     };
 
     // Descargas
-    const manejarDescargaGenerica = (doc: jsPDF, nombre: string, tipo: 'resp' | 'priv', firmado: boolean) => {
+    const manejarDescargaGenerica = (doc: jsPDF, nombre: string, tipo: 'resp' | 'priv') => {
         doc.save(`${nombre}_${formData.nombre}_${formData.fecha}.pdf`);
-        if (firmado) {
-            setPdfsDescargados(prev => ({ ...prev, [tipo]: true }));
-        }
+        setPdfsDescargados(prev => ({ ...prev, [tipo]: true }));
     };
 
-    const descargarResponsabilidadFirmado = () => {
+    const descargarResponsabilidadPDF = () => {
         const canvas = sigResponsabilidadRef.current;
-        if (!canvas || canvas.isEmpty()) return;
+        const tieneFirma = canvas ? !canvas.isEmpty() : false;
 
         try {
-            // Se usa getCanvas() en lugar de getTrimmedCanvas() que a veces falla en algunos navegadores/dispositivos
-            const sig = canvas.getCanvas().toDataURL('image/png');
+            const sig = (tieneFirma && canvas) ? canvas.getCanvas().toDataURL('image/png') : undefined;
             const doc = crearDocResponsabilidad(sig);
-            manejarDescargaGenerica(doc, 'Responsabilidad', 'resp', true);
+            manejarDescargaGenerica(doc, tieneFirma ? 'Responsabilidad' : 'Responsabilidad_Borrador', 'resp');
         } catch (error) {
-            console.error("Error al generar el PDF firmado de Responsabilidad:", error);
-            alert("No se pudo generar el PDF con la firma.");
+            console.error("Error al generar el PDF de Responsabilidad:", error);
+            alert("No se pudo generar el PDF.");
         }
     };
 
-    const descargarPrivacidadFirmado = () => {
+    const descargarPrivacidadPDF = () => {
         const canvas = sigPrivacidadRef.current;
-        if (!canvas || canvas.isEmpty()) return;
+        const tieneFirma = canvas ? !canvas.isEmpty() : false;
 
         try {
-            const sig = canvas.getCanvas().toDataURL('image/png');
+            const sig = (tieneFirma && canvas) ? canvas.getCanvas().toDataURL('image/png') : undefined;
             const doc = crearDocPrivacidad(sig);
-            manejarDescargaGenerica(doc, 'Privacidad', 'priv', true);
+            manejarDescargaGenerica(doc, tieneFirma ? 'Privacidad' : 'Privacidad_Borrador', 'priv');
         } catch (error) {
-            console.error("Error al generar el PDF firmado de Privacidad:", error);
-            alert("No se pudo generar el PDF con la firma.");
+            console.error("Error al generar el PDF de Privacidad:", error);
+            alert("No se pudo generar el PDF.");
         }
     };
 
-    // Callback para que ReservoirCita sepa si ha acabado
+    // Callback para que ReservarCita tenga firmas (opcionales)
     useEffect(() => {
-        const respOk = responsabilidadFirmado && pdfsDescargados.resp;
-        const privOk = necesitaPrivacidad ? (privacidadFirmado && pdfsDescargados.priv) : true;
+        const canvasResp = sigResponsabilidadRef.current;
+        const canvasPriv = sigPrivacidadRef.current;
 
-        if (respOk && privOk) {
-            const canvasResp = sigResponsabilidadRef.current;
-            const canvasPriv = sigPrivacidadRef.current;
+        const respSig = (canvasResp && !canvasResp.isEmpty()) ? canvasResp.getCanvas().toDataURL('image/png') : undefined;
+        const privSig = (necesitaPrivacidad && canvasPriv && !canvasPriv.isEmpty()) ? canvasPriv.getCanvas().toDataURL('image/png') : undefined;
 
-            onSignComplete({
-                responsabilidad: canvasResp?.getCanvas().toDataURL('image/png') || '',
-                ...(necesitaPrivacidad && canvasPriv && {
-                    privacidad: canvasPriv.getCanvas().toDataURL('image/png')
-                })
-            });
-        } else {
-            onSignComplete({ responsabilidad: '' });
-        }
-    }, [responsabilidadFirmado, privacidadFirmado, pdfsDescargados, necesitaPrivacidad]);
+        onSignComplete({
+            responsabilidad: respSig,
+            ...(necesitaPrivacidad ? { privacidad: privSig } : {}),
+            descargadoResponsabilidad: pdfsDescargados.resp,
+            ...(necesitaPrivacidad ? { descargadoPrivacidad: pdfsDescargados.priv } : {}),
+            compromisoEntregar: compromisoEntregar
+        });
+    }, [responsabilidadFirmado, privacidadFirmado, compromisoEntregar, necesitaPrivacidad, pdfsDescargados.resp, pdfsDescargados.priv]);
 
     return (
         <div className="space-y-8 animate-fade-in w-full text-left">
             {/* Caja de Responsabilidad */}
-            <div className="bg-[#1C1B28] p-6 rounded-2xl border border-white/10 flex flex-col gap-4">
-                <h3 className="font-bold text-lg text-white">1. Acuerdo de Responsabilidad</h3>
-                <p className="text-white/60 text-sm">
-                    Revisa las condiciones del documento de responsabilidad antes de firmarlo. Puedes descargarlo en blanco si lo deseas.
+            <div className="bg-surface-container/50 p-6 md:p-8 border border-outline-variant/30 rounded-sm flex flex-col gap-6 relative group">
+                <h3 className="font-headline text-xl text-primary uppercase border-b border-primary/30 inline-block pb-2 self-start flex items-center gap-2">
+                    <span className="material-symbols-outlined shrink-0 text-2xl">history_edu</span> 1. ACUERDO DE RESPONSABILIDAD
+                </h3>
+                <p className="text-on-surface-variant font-body text-sm">
+                    Puedes descargar el PDF en cualquier momento. Si firmas, la firma se incluirá en el documento (opcional).
                 </p>
 
                 {/* Previsualización del PDF */}
                 {prevResponsabilidad && (
-                    <div className="w-full h-64 border border-white/20 rounded-xl overflow-hidden bg-white/5 relative">
+                    <div className="w-full h-64 border border-outline-variant/30 overflow-hidden relative rounded-sm">
                         <iframe
                             src={`${prevResponsabilidad}#toolbar=0&navpanes=0&scrollbar=0`}
-                            className="w-full h-full"
+                            className="w-full h-full filter grayscale hover:grayscale-0 transition-all duration-300"
                             title="Previsualización Responsabilidad"
                         />
-                        <div className="absolute bottom-2 right-2 flex gap-2">
-                            <button
-                                onClick={() => crearDocResponsabilidad().save(`Responsabilidad_Borrador_${formData.nombre}.pdf`)}
-                                className="bg-gray-800/80 hover:bg-gray-700 backdrop-blur text-white text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition"
-                            >
-                                <Eye size={14} /> Descargar PDF Sin Firmar
-                            </button>
-                        </div>
                     </div>
                 )}
 
-                <div className="bg-white rounded-xl overflow-hidden mt-4 border-2 border-dashed border-sky-400">
-                    <p className="text-gray-500 text-xs px-4 pt-2 text-center uppercase tracking-wide">Área de Firma - Usa tu ratón o dedo</p>
+                <div className="bg-surface-container-high border border-primary/50 p-1 relative rounded-sm shadow-[0_0_15px_rgba(var(--color-primary),0.1)]">
+                    <p className="text-primary font-label text-[10px] px-4 pt-2 text-center uppercase tracking-widest absolute top-0 inset-x-0 pointer-events-none opacity-50">DIBUJA TU FIRMA AQUÍ</p>
                     <SignatureCanvas
                         ref={sigResponsabilidadRef}
-                        canvasProps={{ width: 500, height: 150, className: 'w-full h-[150px] cursor-crosshair touch-none' }}
+                        canvasProps={{ width: 500, height: 150, className: 'w-full h-[150px] cursor-crosshair touch-none relative z-10' }}
                         onEnd={handleEndResponsabilidad}
                     />
                 </div>
 
-                <div className="flex justify-between items-center sm:flex-row flex-col gap-4">
-                    <button onClick={clearResponsabilidad} className="text-white/50 hover:text-red-400 text-sm flex items-center gap-1">
-                        <RotateCcw size={16} /> Borrar firma
+                <div className="flex justify-between items-center sm:flex-row flex-col gap-6 pt-4 border-t border-outline-variant/30">
+                    <button onClick={clearResponsabilidad} className="text-error hover:text-error/80 font-label text-xs tracking-[0.2em] flex items-center gap-2 transition-colors uppercase">
+                        <span className="material-symbols-outlined text-[16px]">refresh</span> BORRAR LIENZO
                     </button>
 
                     <button
                         type="button"
-                        onClick={descargarResponsabilidadFirmado}
-                        disabled={!responsabilidadFirmado}
-                        className={`px-4 py-3 rounded-xl font-bold flex items-center gap-2 transition ${responsabilidadFirmado ? 'bg-sky-600 hover:bg-sky-500 text-white shadow-[0_0_15px_rgba(56,189,248,0.3)]' : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                            }`}
+                        onClick={descargarResponsabilidadPDF}
+                        className={`px-6 py-3 font-label text-xs tracking-[0.2em] flex items-center justify-center gap-3 transition-transform uppercase rounded-sm border ${
+                            responsabilidadFirmado
+                                ? 'bg-primary/10 border-primary text-primary shadow-[0_0_10px_rgba(var(--color-primary),0.2)] hover:-translate-y-1'
+                                : 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface border-outline-variant/50 hover:-translate-y-1'
+                        }`}
                     >
-                        <Download size={18} />
-                        {pdfsDescargados.resp ? '¡PDF Firmado Descargado!' : 'Descargar PDF Final Firmado'}
+                        <span className="material-symbols-outlined text-[20px]">{pdfsDescargados.resp ? 'download_done' : 'download'}</span>
+                        {pdfsDescargados.resp ? '¡DESCARGADO!' : 'DESCARGAR PDF'}
                     </button>
                 </div>
             </div>
 
             {/* Caja de Privacidad */}
             {necesitaPrivacidad && (
-                <div className="bg-[#1C1B28] p-6 rounded-2xl border border-white/10 flex flex-col gap-4">
-                    <h3 className="font-bold text-lg text-white">2. Privacidad de Datos y Diseño</h3>
-                    <p className="text-white/60 text-sm">
-                        Debes aceptar el tratamiento de tus datos e ideas para la creación de la obra personalizada.
+                <div className="bg-surface-container/50 p-6 md:p-8 border border-outline-variant/30 rounded-sm flex flex-col gap-6 relative group">
+                    <h3 className="font-headline text-xl text-tertiary uppercase border-b border-tertiary/30 inline-block pb-2 self-start flex items-center gap-2">
+                         <span className="material-symbols-outlined shrink-0 text-2xl">privacy_tip</span> 2. PRIVACIDAD DE DATOS Y DISEÑO
+                    </h3>
+                    <p className="text-on-surface-variant font-body text-sm">
+                        Puedes descargar el PDF en cualquier momento. Si firmas, la firma se incluirá en el documento (opcional).
                     </p>
 
                     {/* Previsualización del PDF */}
                     {prevPrivacidad && (
-                        <div className="w-full h-64 border border-white/20 rounded-xl overflow-hidden bg-white/5 relative">
+                        <div className="w-full h-64 border border-outline-variant/30 overflow-hidden relative rounded-sm">
                             <iframe
                                 src={`${prevPrivacidad}#toolbar=0&navpanes=0&scrollbar=0`}
-                                className="w-full h-full"
+                                className="w-full h-full filter grayscale hover:grayscale-0 transition-all duration-300"
                                 title="Previsualización Privacidad"
                             />
-                            <div className="absolute bottom-2 right-2 flex gap-2">
-                                <button
-                                    onClick={() => crearDocPrivacidad().save(`Privacidad_Borrador_${formData.nombre}.pdf`)}
-                                    className="bg-gray-800/80 hover:bg-gray-700 backdrop-blur text-white text-xs px-3 py-2 rounded-lg flex items-center gap-1 transition"
-                                >
-                                    <Eye size={14} /> Descargar PDF Sin Firmar
-                                </button>
-                            </div>
                         </div>
                     )}
 
-                    <div className="bg-white rounded-xl overflow-hidden mt-4 border-2 border-dashed border-purple-400">
-                        <p className="text-gray-500 text-xs px-4 pt-2 text-center uppercase tracking-wide">Área de Firma - Usa tu ratón o dedo</p>
+                    <div className="bg-surface-container-high border border-tertiary/50 p-1 relative rounded-sm shadow-[0_0_15px_rgba(var(--color-tertiary),0.1)]">
+                        <p className="text-tertiary font-label text-[10px] px-4 pt-2 text-center uppercase tracking-widest absolute top-0 inset-x-0 pointer-events-none opacity-50">DIBUJA TU FIRMA AQUÍ</p>
                         <SignatureCanvas
                             ref={sigPrivacidadRef}
-                            canvasProps={{ width: 500, height: 150, className: 'w-full h-[150px] cursor-crosshair touch-none' }}
+                            canvasProps={{ width: 500, height: 150, className: 'w-full h-[150px] cursor-crosshair touch-none relative z-10' }}
                             onEnd={handleEndPrivacidad}
                         />
                     </div>
 
-                    <div className="flex justify-between items-center sm:flex-row flex-col gap-4">
-                        <button onClick={clearPrivacidad} className="text-white/50 hover:text-red-400 text-sm flex items-center gap-1">
-                            <RotateCcw size={16} /> Borrar firma
+                    <div className="flex justify-between items-center sm:flex-row flex-col gap-6 pt-4 border-t border-outline-variant/30">
+                        <button onClick={clearPrivacidad} className="text-error hover:text-error/80 font-label text-xs tracking-[0.2em] flex items-center gap-2 transition-colors uppercase">
+                             <span className="material-symbols-outlined text-[16px]">refresh</span> BORRAR LIENZO
                         </button>
 
                         <button
                             type="button"
-                            onClick={descargarPrivacidadFirmado}
-                            disabled={!privacidadFirmado}
-                            className={`px-4 py-3 rounded-xl font-bold flex items-center gap-2 transition ${privacidadFirmado ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                                }`}
+                            onClick={descargarPrivacidadPDF}
+                            className={`px-6 py-3 font-label text-xs tracking-[0.2em] flex items-center justify-center gap-3 transition-transform uppercase rounded-sm border ${
+                                privacidadFirmado
+                                    ? 'bg-tertiary/10 border-tertiary text-tertiary shadow-[0_0_10px_rgba(var(--color-tertiary),0.2)] hover:-translate-y-1'
+                                    : 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface border-outline-variant/50 hover:-translate-y-1'
+                            }`}
                         >
-                            <Download size={18} />
-                            {pdfsDescargados.priv ? '¡PDF Firmado Descargado!' : 'Descargar PDF Final Firmado'}
+                            <span className="material-symbols-outlined text-[20px]">{pdfsDescargados.priv ? 'download_done' : 'download'}</span>
+                            {pdfsDescargados.priv ? '¡DESCARGADO!' : 'DESCARGAR PDF'}
                         </button>
                     </div>
                 </div>
             )}
 
-            <div className="bg-sky-900/20 border border-sky-500/30 p-4 rounded-xl text-center shadow-lg">
-                <p className="text-sky-200 text-sm">
-                    <strong>Aviso Importante:</strong> El botón final de confirmación de reserva solo se activará una vez hayas firmado y descargado los documentos finales. Deberás presentar el/los PDF(s) en el estudio.
-                </p>
+            <div className="bg-primary/5 border border-primary/30 p-6 rounded-sm shadow-sm overflow-hidden relative group">
+                <label className="flex items-start gap-4 cursor-pointer relative z-10">
+                    <div className="relative flex items-center justify-center shrink-0 mt-1">
+                        <input
+                            type="checkbox"
+                            checked={compromisoEntregar}
+                            onChange={(e) => setCompromisoEntregar(e.target.checked)}
+                            className="peer appearance-none w-6 h-6 border border-outline-variant/50 bg-surface-container checked:bg-primary checked:border-primary transition-colors cursor-pointer rounded-sm"
+                        />
+                        <span className="material-symbols-outlined absolute text-on-primary text-[18px] pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity">check</span>
+                    </div>
+                    <span className="text-on-surface font-body text-sm tracking-wide leading-relaxed inline-block group-hover:text-primary transition-colors">
+                        Me comprometo a descargar, imprimir y entregar este(os) documento(s) firmado(s) al tatuador el día de la cita. <br/> <strong className="text-primary font-label text-[10px] tracking-widest uppercase bg-primary/10 px-2 mt-2 inline-block border border-primary/20">ENTIENDO QUE ES UN REQUISITO OBLIGATORIO.</strong>
+                    </span>
+                </label>
             </div>
         </div>
     );

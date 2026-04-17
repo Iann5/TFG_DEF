@@ -3,6 +3,7 @@
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\ValoracionPack;
 use App\Entity\User;
@@ -25,11 +26,11 @@ class ValoracionPackProcessor implements ProcessorInterface
             /** @var User|null $user */
             $user = $this->security->getUser();
 
-            if ($user instanceof User) {
+            if ($operation instanceof Post && $user instanceof User) {
                 $data->setUsuario($user);
             }
 
-            if ($data->getFecha() === null) {
+            if ($operation instanceof Post && $data->getFecha() === null) {
                 $data->setFecha(new \DateTime());
             }
         }

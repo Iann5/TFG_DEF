@@ -19,7 +19,7 @@ interface Props {
  * Dropdown multi-select que cierra al hacer clic fuera.
  * La última opción seleccionada tiene prioridad en ordenaciones exclusivas.
  */
-export default function MultiSelect({ placeholder = 'Seleccionar', options, selected, onChange, className = '' }: Props) {
+export default function MultiSelect({ placeholder = 'SELECCIONAR', options, selected, onChange, className = '' }: Props) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
@@ -42,24 +42,42 @@ export default function MultiSelect({ placeholder = 'Seleccionar', options, sele
         <div ref={ref} className={`relative ${className}`}>
             <button
                 onClick={() => setOpen(o => !o)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-[#2D2C3E] border border-white/10 rounded-lg text-white/70 text-sm hover:border-sky-500/40 transition min-w-[180px] justify-between"
+                className="w-full min-w-[220px] flex items-center justify-between gap-3 px-4 py-3 bg-surface-container-highest border border-outline-variant/30 rounded-sm text-on-surface font-label text-xs uppercase tracking-[0.2em] hover:border-primary/50 focus:border-primary/50 transition-colors"
             >
-                <span className="truncate max-w-[150px]">{displayLabel}</span>
-                <ChevronDown size={13} className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+                <span className="truncate text-left max-w-[220px]">
+                    {displayLabel}
+                </span>
+                <ChevronDown
+                    size={18}
+                    strokeWidth={3}
+                    className={`shrink-0 text-outline-variant transition-transform ${open ? 'rotate-180' : ''}`}
+                />
             </button>
 
             {open && (
-                <div className="absolute top-full mt-1 right-0 z-50 bg-[#2D2C3E] border border-white/10 rounded-xl shadow-2xl min-w-[200px] py-1">
+                <div className="absolute top-full mt-2 right-0 z-50 w-full min-w-[250px] bg-surface-container-highest/95 backdrop-blur-md border border-outline-variant/30 rounded-sm overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
                     {options.map(opt => (
                         <button
                             key={opt.value}
                             onClick={() => toggle(opt.value)}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-white/5 transition"
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors group ${
+                                selected.includes(opt.value)
+                                    ? 'bg-primary/15 text-primary'
+                                    : 'hover:bg-surface-container hover:text-on-surface'
+                            }`}
                         >
-                            <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${selected.includes(opt.value) ? 'bg-sky-500 border-sky-500' : 'border-white/30'}`}>
-                                {selected.includes(opt.value) && <Check size={10} className="text-white" />}
+                            <span
+                                className={`w-6 h-6 rounded-sm border flex items-center justify-center shrink-0 ${
+                                    selected.includes(opt.value)
+                                        ? 'bg-primary/20 border-primary/50'
+                                        : 'bg-surface-container border-outline-variant/30'
+                                }`}
+                            >
+                                {selected.includes(opt.value) && <Check size={16} strokeWidth={3} className="text-primary" />}
                             </span>
-                            <span className="text-white/80">{opt.label}</span>
+                            <span className="truncate font-label text-[10px] uppercase tracking-widest text-on-surface/90 group-hover:text-primary">
+                                {opt.label}
+                            </span>
                         </button>
                     ))}
                 </div>

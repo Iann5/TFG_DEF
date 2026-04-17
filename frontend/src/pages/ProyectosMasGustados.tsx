@@ -1,11 +1,11 @@
 import { useEffect, useState, useMemo, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { Award, Filter } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { getFavoritesStorageKey } from '../utils/authUtils';
 
 // REUTILIZAMOS TIPOS Y COMPONENTES (Cero duplicidades, cero 'any')
 import ListaProyectos from '../components/ListaProyecto';
@@ -18,8 +18,7 @@ import {
 
 export default function ProyectosMasGustados() {
   const navigate = useNavigate();
-  const { hasRole, isLoggedIn } = useAuth();
-  const puedeEditar = isLoggedIn && (hasRole('ROLE_TRABAJADOR') || hasRole('ROLE_ADMIN'));
+  const { isLoggedIn } = useAuth();
 
   const [topProyectos, setTopProyectos] = useState<ProyectoNormalizado[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -38,14 +37,21 @@ export default function ProyectosMasGustados() {
     try {
       const res = await api.get<RawProyecto[]>('/proyectos');
 
-      const rawData: RawProyecto[] = res.data;
+      let rawData: RawProyecto[] = res.data;
+
+      rawData = rawData.filter((p: any) => {
+          if (p.autor && p.autor.usuario && p.autor.usuario.roles) {
+              return p.autor.usuario.roles.includes('ROLE_TRABAJADOR');
+          }
+          return true;
+      });
 
       const todosProyectos: ProyectoNormalizado[] = rawData.map(p => {
         const valoraciones = p.valoracionProyectos || [];
         return {
           id: p.id,
           titulo: p.tituloTatuaje || p.nombre || 'Sin título',
-          descripcion: p.descripcion || 'Sin descripción disponible.',
+          descripcion: p.descripcion || undefined,
           estilo: p.estilo || 'Varios',
           tipo: (p.tipo || 'tatuaje').toLowerCase(),
           precioOriginal: p.precioOriginal ?? p.precio_original ?? 0,
@@ -54,6 +60,7 @@ export default function ProyectosMasGustados() {
           nombreTrabajador: p.autor?.usuario?.nombre
             ? `${p.autor.usuario.nombre} ${p.autor.usuario.apellidos || ''}`
             : 'Desconocido',
+          autorUserId: p.autorUserId ?? p.autor?.usuario?.id ?? null,
           fechaSubida: p.fecha_subida || new Date().toISOString(),
           valoraciones: valoraciones,
           media: p.media || 0
@@ -82,8 +89,13 @@ export default function ProyectosMasGustados() {
 
       setTopProyectos(ganadoresHistoricos);
 
-      const favs = localStorage.getItem('mis_favoritos_plantillas');
-      if (favs) setFavoritos(JSON.parse(favs));
+      const storageKey = getFavoritesStorageKey();
+      if (storageKey) {
+        const favs = localStorage.getItem(storageKey);
+        if (favs) setFavoritos(JSON.parse(favs));
+      } else {
+        setFavoritos([]);
+      }
     } catch (err) {
       if (err instanceof AxiosError) setError(`Error ${err.response?.status}`);
     } finally {
@@ -91,12 +103,17 @@ export default function ProyectosMasGustados() {
     }
   };
 
-  useEffect(() => { cargarDatos(); }, []);
+  useEffect(() => {
+    cargarDatos();
+  }, [isLoggedIn]);
 
   const toggleFavorito = (id: number): void => {
+    if (!isLoggedIn) return;
+
     const nuevosFavs = favoritos.includes(id) ? favoritos.filter(fId => fId !== id) : [...favoritos, id];
     setFavoritos(nuevosFavs);
-    localStorage.setItem('mis_favoritos_plantillas', JSON.stringify(nuevosFavs));
+    const storageKey = getFavoritesStorageKey();
+    if (storageKey) localStorage.setItem(storageKey, JSON.stringify(nuevosFavs));
   };
 
   const handleEliminar = async (id: number): Promise<void> => {
@@ -139,77 +156,106 @@ export default function ProyectosMasGustados() {
   }, [topProyectos, filtros]);
 
   return (
-    <div className="min-h-screen bg-[#1C1B28] font-sans relative overflow-hidden">
-
-      {/* FONDO GLOBAL DE PANELES */}
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{ backgroundImage: "url('/paneles.jpg')", backgroundSize: 'cover', opacity: 0.15, filter: 'invert(1)' }}
-      />
+    <div className="min-h-screen bg-background text-on-surface flex flex-col relative selection:bg-primary/30 selection:text-primary">
+      {/* Texture overlay */}
+      <div className="fixed inset-0 pointer-events-none mix-blend-overlay opacity-20 z-0 bg-[url('/noise.svg')]"></div>
 
       {/* ESTRUCTURA FLEXBOX PARA EMPUJAR EL FOOTER */}
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar />
 
-        <main className="container mx-auto px-4 py-12 flex-grow">
-          <div className="flex flex-col md:flex-row items-center justify-center mb-10 gap-4 text-center">
-            <h1 className="text-4xl md:text-5xl font-extralight text-white tracking-wider flex items-center gap-4">
-              <Award className="text-sky-300 w-12 h-12" />
-              Proyectos <span className="text-sky-300 font-bold italic">Más Gustados</span>
-            </h1>
-          </div>
+        <div className="flex-grow pt-24 pb-20">
+            <header className="max-w-[1400px] mx-auto px-4 md:px-8 mt-24 mb-16 relative">
+                {/* Elemento Decorativo */}
+                <div className="absolute -top-10 -right-6 text-on-surface font-headline text-8xl md:text-9xl tracking-[1rem] opacity-[0.03] transform rotate-12 pointer-events-none uppercase">
+                    HALL OF FAME
+                </div>
 
-          <p className="text-center text-white/60 max-w-2xl mx-auto mb-12 text-lg">
-            El salón de la fama. Aquí se inmortalizan el tatuaje y la plantilla mejor valorados de cada mes.
-          </p>
+                <div className="flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start mb-6 gap-6 relative z-10 pt-12">
+                    <div className="text-center md:text-left mt-4 md:mt-0">
+                        <span className="font-label text-primary text-xs uppercase tracking-[0.3em] block mb-4">El Salón de la Fama</span>
+                        <h1 className="text-5xl md:text-7xl font-headline font-bold uppercase tracking-tight text-on-surface block mb-2">
+                            Proyectos <span className="text-outline-variant italic">Más Gustados</span>
+                        </h1>
+                    </div>
+                </div>
 
-          {/* PANEL DE FILTROS */}
-          <div className="bg-[#323444]/80 p-6 rounded-2xl border border-gray-300/20 mb-12 flex flex-col md:flex-row gap-6 shadow-xl backdrop-blur-sm max-w-4xl mx-auto">
-            <div className="flex items-center gap-3 text-sky-300 font-bold uppercase text-sm tracking-wider w-full md:w-auto">
-              <Filter size={20} /> Filtros de Élite
-            </div>
-            <div className="flex flex-wrap flex-grow gap-4">
-              <select
-                className="bg-[#1C1B28] text-white border border-gray-300/30 p-3 rounded-xl outline-none focus:border-gray-300 flex-1 min-w-[150px] transition-all"
-                value={filtros.orden}
-                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltros({ ...filtros, orden: e.target.value as FiltrosProyectos['orden'] })}
-              >
-                <option value="reciente">Más recientes (Nuevos ganadores)</option>
-                <option value="antiguo">Más antiguos</option>
-                <option value="valoracionAlta">De mayor a menor valoración</option>
-                <option value="valoracionBaja">De menor a mayor valoración</option>
-              </select>
+                <div className="border-l-2 border-primary pl-4 mx-auto md:mx-0 relative z-10 mb-12">
+                    <p className="text-on-surface-variant font-body text-sm leading-relaxed max-w-lg">
+                        Aquí se inmortaliza lo mejor. Explora los tatuajes y plantillas con mayor valoración.
+                    </p>
+                </div>
 
-              <div className="hidden md:block w-px bg-white/10 self-stretch mx-2"></div>
+                {/* PANEL DE FILTROS */}
+                <div className="mt-8 glass-panel p-6 md:p-8 flex flex-col md:flex-row gap-6 relative group z-10 max-w-4xl">
+                    <div className="flex-grow md:w-1/2 relative space-y-3">
+                        <label className="text-outline font-label text-xs tracking-widest uppercase block mb-2">
+                            Ordenar Por
+                        </label>
+                        <div className="relative">
+                            <select
+                                className="w-full bg-surface-container-highest border border-outline-variant/30 px-4 py-4 pr-10 focus:outline-none focus:border-primary transition-all font-label text-xs uppercase appearance-none cursor-pointer rounded-sm text-on-surface"
+                                value={filtros.orden}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltros({ ...filtros, orden: e.target.value as FiltrosProyectos['orden'] })}
+                            >
+                                <option value="reciente">Nuevos Ganadores</option>
+                                <option value="antiguo">Más antiguos</option>
+                                <option value="valoracionAlta">De mayor a menor valoración</option>
+                                <option value="valoracionBaja">De menor a mayor valoración</option>
+                            </select>
+                            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+                        </div>
+                    </div>
 
-              <select
-                className="bg-[#1C1B28] text-white border border-gray-300/30 p-3 rounded-xl outline-none focus:border-gray-300 flex-1 min-w-[150px] transition-all"
-                value={filtros.tipo}
-                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltros({ ...filtros, tipo: e.target.value as FiltrosProyectos['tipo'] })}
-              >
-                <option value="todos">Tatuajes y Plantillas</option>
-                <option value="tatuaje">Solo Tatuajes</option>
-                <option value="plantilla">Solo Plantillas</option>
-              </select>
-            </div>
-          </div>
+                    <div className="flex-grow md:w-1/2 relative space-y-3">
+                        <label className="text-outline font-label text-xs tracking-widest uppercase block mb-2">
+                            Tipo de Proyecto
+                        </label>
+                        <div className="relative">
+                            <select
+                                className="w-full bg-surface-container-highest border border-outline-variant/30 px-4 py-4 pr-10 focus:outline-none focus:border-primary transition-all font-label text-xs uppercase appearance-none cursor-pointer rounded-sm text-on-surface"
+                                value={filtros.tipo}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltros({ ...filtros, tipo: e.target.value as FiltrosProyectos['tipo'] })}
+                            >
+                                <option value="todos">Tatuajes y Plantillas</option>
+                                <option value="tatuaje">Solo Tatuajes</option>
+                                <option value="plantilla">Solo Plantillas</option>
+                            </select>
+                            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-          {/* RENDERIZADO DEL COMPONENTE REUTILIZADO */}
-          {loading && <p className="text-yellow-500 text-center text-xl animate-pulse font-bold">Cargando el salón de la fama...</p>}
-          {error && <p className="text-red-400 text-center bg-red-900/20 p-4 rounded-lg">{error}</p>}
+            <main className="max-w-[1400px] mx-auto px-4 md:px-8 pb-24">
+                {/* RENDERIZADO DEL COMPONENTE REUTILIZADO */}
+                {loading && (
+                    <div className="text-center py-20 flex flex-col items-center gap-4">
+                        <span className="material-symbols-outlined text-primary text-4xl animate-spin">refresh</span>
+                        <p className="font-label text-xs tracking-widest text-primary uppercase">Abriendo el salón de la fama...</p>
+                    </div>
+                )}
+                {error && (
+                    <div className="text-center py-20 bg-error-container/20 text-error border border-error/50 p-6 rounded-sm mb-12">
+                        <span className="material-symbols-outlined text-4xl mb-2">error</span>
+                        <p className="font-body text-sm uppercase">{error}</p>
+                    </div>
+                )}
 
-          {!loading && !error && (
-            <ListaProyectos
-              proyectos={proyectosFiltrados}
-              favoritos={favoritos}
-              onToggleFav={toggleFavorito}
-              puedeEditar={puedeEditar}
-              navigate={navigate}
-              onEliminar={handleEliminar}
-            />
-          )}
-
-        </main>
+                {!loading && !error && (
+                    <div className="relative">
+                        <ListaProyectos
+                        proyectos={proyectosFiltrados}
+                        favoritos={favoritos}
+                        onToggleFav={toggleFavorito}
+                        puedeEditarFn={() => false}
+                        navigate={navigate}
+                        onEliminar={handleEliminar}
+                        />
+                    </div>
+                )}
+          </main>
+        </div>
         <Footer />
       </div>
     </div>

@@ -26,10 +26,14 @@ export interface RawProyecto {
   precio_oferta?: number | null;
   imagen?: string;
   nombreTrabajador?: string;
+  /** ID del User (no del Trabajador) que es autor — viene de getAutorUserId() en la entidad */
+  autorUserId?: number | null;
   autor?: {
     usuario?: {
+      id?: number;
       nombre?: string;
       apellidos?: string;
+      roles?: string[];
     }
   };
   fecha_subida?: string;
@@ -43,13 +47,15 @@ export interface RawProyecto {
 export interface ProyectoNormalizado {
   id: number;
   titulo: string;
-  descripcion: string;
+  descripcion?: string;
   estilo: string;
   tipo: string;
   precioOriginal: number;
   precioOferta: number | null;
   imagen: string;
   nombreTrabajador: string;
+  /** ID del User autor — para comparar con el usuario logueado y mostrar botones de edición */
+  autorUserId: number | null;
   fechaSubida: string;
   valoraciones: ValoracionBase[];
   media: number;

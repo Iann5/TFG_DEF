@@ -1,4 +1,4 @@
-import { Calendar, Clock } from 'lucide-react';
+
 import type { CitaForm, SlotHora } from '../../types/Citas';
 
 interface Props {
@@ -11,53 +11,72 @@ interface Props {
 
 export default function Paso2FechaHora({ formData, horasDisponibles, onBack, onFechaChange, onHoraSelect }: Props) {
     return (
-        <div className="animate-fade-in w-full max-w-2xl mx-auto">
-            <h2 className="text-xl text-sky-400 font-bold mb-6 flex items-center gap-2">
-                <Calendar size={24} /> 3. Elige Día y Hora
+        <div className="w-full max-w-4xl mx-auto">
+            <h2 className="text-xl md:text-2xl text-on-surface font-headline uppercase tracking-tight mb-6 flex items-center gap-3 border-b border-outline-variant/30 pb-4">
+                <span className="material-symbols-outlined text-primary text-3xl">calendar_month</span> 3. ELIGE DÍA Y HORA
             </h2>
             <button
                 onClick={onBack}
-                className="text-white/60 hover:text-white underline text-sm mb-6 inline-block"
+                className="bg-surface-container border border-outline-variant/30 px-4 py-2 font-label text-xs tracking-[0.2em] uppercase text-on-surface hover:text-primary transition-colors mb-8 rounded-sm flex items-center gap-2 group"
             >
-                &larr; Volver a Detalles
+                <span className="material-symbols-outlined text-[16px] group-hover:-translate-x-1 transition-transform">arrow_left</span> VOLVER A DETALLES
             </button>
 
-            <div className="bg-[#1C1B28] p-6 rounded-2xl border border-white/10">
-                <label className="block text-white/70 font-bold mb-2">Selecciona un día:</label>
-                <input
-                    type="date"
-                    className="w-full bg-[#323444] text-white border border-white/20 p-3 rounded-xl mb-6 outline-none focus:border-sky-500"
-                    value={formData.fecha}
-                    onChange={onFechaChange}
-                    min={new Date().toISOString().split('T')[0]}
-                />
+            <div className="glass-panel p-6 md:p-8 mb-8 relative">
+                <div className="space-y-4 relative group flex flex-col items-start block overflow-visible mt-2">
+                    <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">Selecciona un día</label>
+                    <div className="relative w-full md:w-1/2">
+                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none group-focus-within:text-primary transition-colors z-10">calendar_today</span>
+                        <input
+                            type="date"
+                            className="w-full bg-surface-container/50 border border-outline-variant/30 pl-10 pr-3 py-3 text-on-surface font-body text-base outline-none focus:border-primary transition-colors cursor-pointer rounded-sm"
+                            value={formData.fecha}
+                            onChange={onFechaChange}
+                            min={new Date().toISOString().split('T')[0]}
+                            style={{colorScheme: 'dark'}}
+                        />
+                    </div>
+                </div>
 
                 {formData.fecha && horasDisponibles.length > 0 && (
-                    <div>
-                        <label className="block text-white/70 font-bold mb-4">Horas disponibles:</label>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="animate-fade-in border-t border-outline-variant/30 pt-8 mt-8">
+                        <label className="text-outline font-label text-xs tracking-[0.2em] uppercase flex items-center gap-2 mb-6">
+                            <span className="material-symbols-outlined text-[16px]">schedule</span> Horas disponibles
+                        </label>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                             {horasDisponibles.map(slot => (
                                 <button
                                     key={slot.hora}
                                     onClick={() => {
                                         if (!slot.disponible) {
-                                            alert(`La franja de las ${slot.hora} no está disponible porque el tatuador está ocupado en ese momento con el tiempo que requiere tu tatuaje.`);
+                                            if (slot.motivo === 'superaLimite') {
+                                                alert(`La franja de las ${slot.hora} no está disponible porque tu diseño requiere demasiado tiempo y se solaparía con la siguiente cita.`);
+                                            } else {
+                                                alert(`La franja de las ${slot.hora} no está disponible porque el tatuador ya tiene una cita ocupando ese hueco.`);
+                                            }
                                         } else {
                                             onHoraSelect(slot.hora);
                                         }
                                     }}
-                                    className={`p-3 rounded-xl font-bold transition-all border outline-none ${!slot.disponible
-                                            ? 'bg-red-900/10 border-red-900/30 text-red-400/50 cursor-not-allowed hover:bg-red-900/20'
+                                    className={`relative p-3 rounded-sm border transition-all ${!slot.disponible
+                                            ? slot.motivo === 'superaLimite'
+                                                ? 'bg-surface-container/50 border-error/30 text-on-surface/30 cursor-not-allowed'
+                                                : 'bg-surface-container/50 border-error/30 text-on-surface/30 cursor-not-allowed'
                                             : formData.horaInicio === slot.hora
-                                                ? 'bg-sky-600 border-sky-400 text-white shadow-[0_0_15px_rgba(56,189,248,0.5)] transform scale-105'
-                                                : 'bg-[#323444] border-white/10 text-white/80 hover:bg-[#3b3d52] hover:text-white hover:-translate-y-0.5'
-                                        }`}
+                                                ? 'bg-primary/20 border-primary text-primary shadow-sm transform scale-105 z-10'
+                                                : 'bg-surface-container/50 border-outline-variant/30 text-on-surface hover:border-primary/50 hover:text-primary hover:-translate-y-1'
+                                        } flex flex-col items-center justify-center min-h-[70px]`}
                                 >
-                                    <div className="flex flex-col items-center gap-1.5">
-                                        <Clock size={16} className={!slot.disponible ? 'opacity-50' : ''} />
-                                        <span className={!slot.disponible ? 'line-through decoration-red-500/50' : ''}>{slot.hora}</span>
+                                    <div className="flex flex-col items-center justify-center w-full gap-2 relative">
+                                        <span className={`font-headline text-lg tracking-wider leading-none ${!slot.disponible ? 'line-through opacity-50' : ''}`}>
+                                            {slot.hora}
+                                        </span>
                                         {!slot.disponible && (
-                                            <span className="text-[9px] uppercase tracking-wider text-red-400/70 mt-0.5">Ocupado</span>
+                                            <div className={`absolute inset-0 flex items-center justify-center`}>
+                                                <span className={`font-label text-[10px] px-2 py-1 uppercase tracking-widest transform -rotate-[15deg] border rounded-sm backdrop-blur-sm ${slot.motivo === 'superaLimite' ? 'bg-error/20 border-error text-error' : 'bg-error/20 border-error text-error'}`}>
+                                                    {slot.motivo === 'superaLimite' ? 'No Tiempo' : 'Ocupado'}
+                                                </span>
+                                            </div>
                                         )}
                                     </div>
                                 </button>

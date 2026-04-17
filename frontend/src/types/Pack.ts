@@ -23,7 +23,7 @@ export interface PackDetalle {
         id?: number;
     };
     creadorUserId?: number;
-    creador?: {
+    creador?: string | {
         id?: number;
         usuario?: {
             nombre?: string;

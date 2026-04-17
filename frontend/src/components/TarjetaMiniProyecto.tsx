@@ -29,21 +29,37 @@ export default function TarjetaMiniProyecto({ proyecto }: Props) {
     return (
         <div
             onClick={() => navigate(`/proyecto/${proyecto.id}`)}
-            className="bg-[#1C1B28] border border-white/10 rounded-xl overflow-hidden cursor-pointer hover:border-sky-500/40 transition group"
+            className="glass-panel flex flex-col cursor-pointer hover:-translate-y-1 transition-all overflow-hidden border border-outline-variant/30 group"
         >
-            <div className="aspect-square bg-[#9CA3AF] overflow-hidden">
+            <div className="aspect-square bg-surface-container border-b border-outline-variant/20 overflow-hidden relative flex items-center justify-center">
+                <div className="absolute inset-0 bg-primary/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-500 pointer-events-none"></div>
                 {proyecto.imagen
-                    ? <img src={proyecto.imagen} alt={proyecto.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    : <div className="w-full h-full flex items-center justify-center text-gray-700 font-black text-3xl">IMG</div>
+                    ? (
+                        <img
+                            src={proyecto.imagen}
+                            alt={proyecto.nombre}
+                            className="w-full h-full object-cover filter grayscale group-hover:filter-none transition-all duration-700 hover:scale-105"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-outline-variant font-headline text-4xl tracking-widest opacity-30">
+                            IMG
+                        </div>
+                    )
                 }
             </div>
-            <div className="p-3">
-                <p className="text-white text-sm font-semibold truncate">{proyecto.nombre ?? 'Sin título'}</p>
-                <div className="flex items-center justify-between mt-1">
-                    <span className="text-white/40 text-xs uppercase tracking-wider">{proyecto.tipo ?? '—'}</span>
-                    <div className="flex items-center gap-1">
-                        <Star size={10} className="fill-yellow-400 text-yellow-400" />
-                        <span className="text-yellow-400 text-xs">{media > 0 ? media.toFixed(1) : '—'}</span>
+            <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+                <p className="text-on-surface font-headline text-lg uppercase tracking-tight leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                    {proyecto.nombre ?? 'SIN TÍTULO'}
+                </p>
+                <div className="flex items-center justify-between gap-2">
+                    <span className="bg-primary/10 text-primary font-label text-[10px] uppercase tracking-widest px-2 py-1 border border-primary/20 rounded-sm truncate">
+                        {proyecto.tipo ?? '—'}
+                    </span>
+                    <div className="flex items-center gap-2 border border-outline-variant/30 px-2 py-1 rounded-sm bg-surface-container/30">
+                        <Star size={14} strokeWidth={3} className="fill-tertiary text-tertiary" />
+                        <span className="text-on-surface font-label text-[10px] tracking-widest uppercase">
+                            {media > 0 ? media.toFixed(1) : '—'}
+                        </span>
                     </div>
                 </div>
             </div>

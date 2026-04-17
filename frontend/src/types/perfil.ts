@@ -38,8 +38,17 @@ export interface Cita {
             apellidos: string;
         };
     };
+    imagen?: string;
+    descripcion?: string;
+    tamano_cm?: number;
     proyectos?: {
         id: number;
+        nombre?: string;
+        imagen?: string;
+    }[];
+    packs?: {
+        id: number;
         titulo?: string;
+        imagen?: string;
     }[];
 }

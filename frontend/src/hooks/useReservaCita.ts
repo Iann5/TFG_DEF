@@ -11,7 +11,6 @@ import {
     type SlotHora
 } from '../types/Citas';
 import type { RawProyecto } from '../types/proyecto';
-import type { PackDetalle } from '../types/Pack';
 
 // Límite diario en minutos (8 horas)
 const MAX_MINUTOS_DIARIOS = 480;
@@ -19,12 +18,11 @@ const MAX_MINUTOS_DIARIOS = 480;
 export default function useReservaCita() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, hasRole } = useAuth();
 
     const [paso, setPaso] = useState<number>(1);
     const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
     const [plantillasTrabajador, setPlantillasTrabajador] = useState<RawProyecto[]>([]);
-    const [packsTrabajador, setPacksTrabajador] = useState<PackDetalle[]>([]);
     const [horasDisponibles, setHorasDisponibles] = useState<SlotHora[]>([]);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [firmas, setFirmas] = useState<FirmasState | null>(null);
@@ -48,6 +46,12 @@ export default function useReservaCita() {
     // Cargar datos del usuario si está logueado
     useEffect(() => {
         if (isLoggedIn) {
+            if (hasRole('ROLE_ADMIN') || hasRole('ROLE_TRABAJADOR')) {
+                alert('Acceso denegado: Los administradores y trabajadores no pueden solicitar citas.');
+                navigate('/');
+                return;
+            }
+
             api.get('/me')
                 .then(res => {
                     const data = res.data;
@@ -61,7 +65,7 @@ export default function useReservaCita() {
                 })
                 .catch(err => console.error('Error al cargar datos del usuario', err));
         }
-    }, [isLoggedIn]);
+    }, [isLoggedIn, hasRole, navigate]);
 
     // Tipado de location.state
     useEffect(() => {
@@ -74,10 +78,6 @@ export default function useReservaCita() {
                 ...((state.plantillaId || state.proyectoId) && {
                     tipo: 'plantilla',
                     proyectosIDs: [...prev.proyectosIDs, (state.plantillaId || state.proyectoId) as number]
-                }),
-                ...(state.packId && {
-                    tipo: 'plantilla',
-                    packsIDs: [...prev.packsIDs, state.packId as number]
                 })
             }));
 
@@ -87,16 +87,12 @@ export default function useReservaCita() {
         }
     }, []); // Only run ONCE on mount to grab initialization variables
 
-    // Fetch plantillas/tatuajes/packs when a worker is selected
+    // Fetch plantillas/tatuajes when a worker is selected
     useEffect(() => {
         if (formData.trabajadorId && formData.tipo === 'plantilla') {
             api.get<RawProyecto[]>(`/proyectos?autor=${formData.trabajadorId}`)
                 .then(res => setPlantillasTrabajador(res.data))
                 .catch(err => console.error("Error cargando proyectos del trabajador", err));
-
-            api.get<PackDetalle[]>(`/packs?creador=${formData.trabajadorId}`)
-                .then(res => setPacksTrabajador(res.data))
-                .catch(err => console.error("Error cargando packs del trabajador", err));
         }
     }, [formData.trabajadorId, formData.tipo]);
 
@@ -105,8 +101,11 @@ export default function useReservaCita() {
         const cargarTrabajadores = async () => {
             try {
                 const res = await api.get<TrabajadorAPI[]>('/trabajadors');
+                const activos = res.data.filter((t: any) => {
+                    return t.usuario && t.usuario.roles ? t.usuario.roles.includes('ROLE_TRABAJADOR') : true;
+                });
 
-                const dataMapeada: Trabajador[] = res.data.map(t => ({
+                const dataMapeada: Trabajador[] = activos.map((t: any) => ({
                     id: t.id,
                     nombre: t.usuario?.nombre || 'Desconocido',
                     apellidos: t.usuario?.apellidos || '',
@@ -160,18 +159,24 @@ export default function useReservaCita() {
         let tiempoMinutos = 60; // Por defecto 1h
         const trabajador = trabajadores.find(t => t.id === formData.trabajadorId);
 
-        if (formData.tipo === 'personalizado') {
+        if (formData.tipo === 'personalizado' || formData.tipo === 'plantilla') {
             const tarifa = getTarifaAproximada(trabajador, formData.tamanoCm);
             tiempoMinutos = tarifa.minutos + 15;
-        } else if (formData.tipo === 'plantilla') {
-            // Asumimos 1 hora de tatuaje base + 1 hora de margen de seguridad entre cita y cita = 120 minutos
-            tiempoMinutos = 60 + 60;
         }
         return Math.round(tiempoMinutos);
     };
 
     const handleFechaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const nuevaFecha = e.target.value;
+
+        // Comprobación segura de fin de semana (ignorando zonas horarias)
+        const [año, mes, dia] = nuevaFecha.split('-').map(Number);
+        const fechaLocal = new Date(año, mes - 1, dia); // Mes es 0-indexado
+        if (fechaLocal.getDay() === 0 || fechaLocal.getDay() === 6) {
+            alert("El estudio permanece cerrado los fines de semana. Por favor, elige de lunes a viernes.");
+            return;
+        }
+
         setFormData(prev => ({ ...prev, fecha: nuevaFecha, horaInicio: '' }));
         setHorasDisponibles([]); // Limpiar horas mientras carga
 
@@ -216,12 +221,15 @@ export default function useReservaCita() {
                 const fechaPropuestaFin = new Date(fechaPropuestaInicio.getTime() + duracionNuevaReserva * 60000);
 
                 // Comprobar si se solapa con ALGUNA reserva existente
-                const haySolapamiento = citasDelDia.some((citaExt: any) => {
+                let motivo: 'ocupado' | 'superaLimite' | undefined;
+                let haySolapamiento = false;
+
+                for (const citaExt of citasDelDia) {
                     // Ignorar citas canceladas o rechazadas para liberar hueco
-                    if (citaExt.estado === 'Cancelada' || citaExt.estado === 'Rechazada') return false;
+                    if (citaExt.estado === 'Cancelada' || citaExt.estado === 'Rechazada') continue;
                     
                     // Ignorar citas que la base de datos haya colado de otros días
-                    if (citaExt.fecha && !citaExt.fecha.startsWith(nuevaFecha)) return false;
+                    if (citaExt.fecha && !citaExt.fecha.startsWith(nuevaFecha)) continue;
 
                     // Extraer Literalmente HH:MM para ignorar las franjas horarias (Timezones) del navegador
                     // si ApiPlatform devolviera +00:00 (UTC) o similar.
@@ -237,12 +245,21 @@ export default function useReservaCita() {
 
                     // Lógica de solapamiento:
                     // Se solapan si (InicioA < FinB) AND (FinA > InicioB)
-                    return (fechaPropuestaInicio < citaFin) && (fechaPropuestaFin > citaInicio);
-                });
+                    if ((fechaPropuestaInicio < citaFin) && (fechaPropuestaFin > citaInicio)) {
+                        haySolapamiento = true;
+                        if (fechaPropuestaInicio >= citaInicio && fechaPropuestaInicio < citaFin) {
+                            motivo = 'ocupado';
+                            break; // Ocupación total tiene prioridad visual, salir del bucle.
+                        } else {
+                            motivo = 'superaLimite';
+                        }
+                    }
+                }
 
                 return {
                     hora,
-                    disponible: !haySolapamiento
+                    disponible: !haySolapamiento,
+                    ...(motivo && { motivo })
                 };
             });
 
@@ -277,11 +294,7 @@ export default function useReservaCita() {
     };
 
     const handleSignComplete = (sigs: FirmasState) => {
-        if (!sigs.responsabilidad) {
-            setFirmas(null);
-        } else {
-            setFirmas(sigs);
-        }
+        setFirmas(sigs);
     };
 
     const handleSubmit = async () => {
@@ -293,7 +306,7 @@ export default function useReservaCita() {
             if (!formData.trabajadorId) throw new Error("Falta elegir trabajador");
 
             const trabajadorSelect = trabajadores.find(t => t.id === formData.trabajadorId);
-            const tarifaEstimada = formData.tipo === 'personalizado' ? getTarifaAproximada(trabajadorSelect, formData.tamanoCm) : null;
+            const tarifaEstimada = getTarifaAproximada(trabajadorSelect, formData.tamanoCm);
 
             const payload: {
                 usuario: string;
@@ -306,6 +319,9 @@ export default function useReservaCita() {
                 precioTotal: number | null;
                 proyectos: string[];
                 packs: string[];
+                descripcion?: string;
+                tamano_cm?: number;
+                imagen?: string;
             } = {
                 usuario: `/api/users/${userId}`,
                 trabajador: `/api/trabajadors/${formData.trabajadorId}`,
@@ -318,6 +334,22 @@ export default function useReservaCita() {
                 proyectos: [],
                 packs: []
             };
+
+            // Para Citas Personalizadas o Plantillas Custom, almacenamos detalles base
+            if (formData.tipo === 'personalizado' || formData.tipo === 'plantilla') {
+                payload.descripcion = formData.descripcion;
+                payload.tamano_cm = formData.tamanoCm;
+                
+                // Si el usuario adjuntó una imagen, subirla primero a MediaObjects
+                if (formData.imagen) {
+                    const fd = new FormData();
+                    fd.append('file', formData.imagen);
+                    const uploadRes = await api.post('/media_objects', fd, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    payload.imagen = uploadRes.data.contentUrl;
+                }
+            }
 
             if (formData.tipo === 'plantilla') {
                 payload.proyectos = formData.proyectosIDs.map(id => `/api/proyectos/${id}`);
@@ -345,7 +377,6 @@ export default function useReservaCita() {
         setPaso,
         trabajadores,
         plantillasTrabajador,
-        packsTrabajador,
         horasDisponibles,
         isSubmitting,
         firmas,

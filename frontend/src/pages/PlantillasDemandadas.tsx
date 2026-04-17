@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { Search } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-
+import { getFavoritesStorageKey } from '../utils/authUtils';
 // IMPORTAMOS LOS COMPONENTES Y TIPOS REUTILIZABLES (Cero duplicidades, cero 'any')
 import ListaProyectos from '../components/ListaProyecto';
 import {
@@ -17,8 +16,7 @@ import {
 
 export default function PlantillasDemandadas() {
     const navigate = useNavigate();
-    const { hasRole, isLoggedIn } = useAuth();
-    const puedeEditar = isLoggedIn && (hasRole('ROLE_TRABAJADOR') || hasRole('ROLE_ADMIN'));
+    const { isLoggedIn } = useAuth();
 
     const [plantillas, setPlantillas] = useState<ProyectoNormalizado[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -37,7 +35,14 @@ export default function PlantillasDemandadas() {
             try {
                 const res = await api.get<RawProyecto[]>('/proyectos');
 
-                const rawData: RawProyecto[] = res.data;
+                let rawData: RawProyecto[] = res.data;
+
+                rawData = rawData.filter((p: any) => {
+                    if (p.autor && p.autor.usuario && p.autor.usuario.roles) {
+                        return p.autor.usuario.roles.includes('ROLE_TRABAJADOR');
+                    }
+                    return true;
+                });
 
                 // 1. Filtramos solo las plantillas y normalizamos los datos
                 const soloPlantillasNormalizadas: ProyectoNormalizado[] = rawData
@@ -47,7 +52,7 @@ export default function PlantillasDemandadas() {
                         return {
                             id: p.id,
                             titulo: p.tituloTatuaje || p.nombre || 'Plantilla sin título',
-                            descripcion: p.descripcion || 'Sin descripción disponible.',
+                            descripcion: p.descripcion || undefined,
                             estilo: p.estilo || 'Varios',
                             tipo: 'plantilla',
                             precioOriginal: p.precioOriginal ?? p.precio_original ?? 0,
@@ -56,6 +61,7 @@ export default function PlantillasDemandadas() {
                             nombreTrabajador: p.autor?.usuario?.nombre
                                 ? `${p.autor.usuario.nombre} ${p.autor.usuario.apellidos || ''}`
                                 : 'Desconocido',
+                            autorUserId: p.autorUserId ?? p.autor?.usuario?.id ?? null,
                             fechaSubida: p.fecha_subida || new Date().toISOString(),
                             valoraciones: valoraciones,
                             media: p.media || 0
@@ -64,9 +70,14 @@ export default function PlantillasDemandadas() {
 
                 setPlantillas(soloPlantillasNormalizadas);
 
-                // Cargar favoritos del LocalStorage
-                const favsGuardados = localStorage.getItem('mis_favoritos_plantillas');
-                if (favsGuardados) setFavoritos(JSON.parse(favsGuardados));
+                // Cargar favoritos del LocalStorage solo si hay usuario logueado
+                const storageKey = getFavoritesStorageKey();
+                if (storageKey) {
+                    const favsGuardados = localStorage.getItem(storageKey);
+                    if (favsGuardados) setFavoritos(JSON.parse(favsGuardados));
+                } else {
+                    setFavoritos([]);
+                }
 
             } catch (err) {
                 if (err instanceof AxiosError) setError(`Error ${err.response?.status}`);
@@ -75,15 +86,18 @@ export default function PlantillasDemandadas() {
             }
         };
         cargarDatos();
-    }, []);
+    }, [isLoggedIn]);
 
     const toggleFavorito = (id: number): void => {
+        if (!isLoggedIn) return;
+
         const nuevosFavs = favoritos.includes(id)
             ? favoritos.filter(fId => fId !== id)
             : [...favoritos, id];
 
         setFavoritos(nuevosFavs);
-        localStorage.setItem('mis_favoritos_plantillas', JSON.stringify(nuevosFavs));
+        const storageKey = getFavoritesStorageKey();
+        if (storageKey) localStorage.setItem(storageKey, JSON.stringify(nuevosFavs));
     };
 
     const handleEliminar = async (id: number): Promise<void> => {
@@ -128,65 +142,96 @@ export default function PlantillasDemandadas() {
     }, [plantillasFiltradas]);
 
     return (
-        <div className="bg-[#1C1B28] text-white relative">
+        <div className="min-h-screen bg-background text-on-surface flex flex-col relative selection:bg-primary/30 selection:text-primary">
+            {/* Texture overlay */}
+            <div className="fixed inset-0 pointer-events-none mix-blend-overlay opacity-20 z-0 bg-[url('/noise.svg')]"></div>
 
-            <div
-                className="fixed inset-0 z-0 opacity-20 pointer-events-none"
-                style={{ backgroundImage: "url('/paneles.jpg')", backgroundSize: 'cover', filter: 'invert(1)' }}
-            ></div>
-
-            {/* ENVOLTORIO FLEXBOX PARA EMPUJAR EL FOOTER ABAJO */}
             <div className="relative z-10 flex flex-col min-h-screen">
                 <Navbar />
 
-                <div className="flex-grow">
-                    <header className="py-16 px-6 max-w-7xl mx-auto">
-                        <h1 className="text-5xl font-extralight mb-4">
-                            Plantillas <span className="text-sky-300 italic font-bold">Demandadas</span>
-                        </h1>
+                <div className="flex-grow pt-24 pb-20">
+                    <header className="max-w-[1400px] mx-auto px-4 md:px-8 mt-24 mb-16 relative">
+                        {/* Elemento Decorativo */}
+                        <div className="absolute -top-10 -left-6 text-on-surface font-headline text-8xl md:text-9xl tracking-[1rem] opacity-[0.03] transform -rotate-12 pointer-events-none uppercase">
+                            FLASHES
+                        </div>
+
+                        <div className="relative">
+                            <span className="font-label text-primary text-xs uppercase tracking-[0.3em] block mb-4 pt-12">Catálogo de Flashes</span>
+                            <h1 className="text-5xl md:text-7xl font-headline font-bold uppercase tracking-tight text-on-surface mb-2 relative z-10 block">
+                                Plantillas <span className="text-outline-variant italic">Demandadas</span>
+                            </h1>
+                            {/* Decorative elements */}
+                            <div className="absolute -left-4 top-12 w-1 h-32 bg-primary"></div>
+                        </div>
 
                         {/* BARRA DE FILTROS */}
-                        <div className="mt-10 flex flex-col md:flex-row gap-4 bg-[#323444]/80 backdrop-blur-sm p-4 rounded-3xl border border-white/5 shadow-2xl">
+                        <div className="mt-16 glass-panel p-6 md:p-8 flex flex-col md:flex-row gap-6 relative group z-10">
                             <div className="relative flex-grow">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar por estilo o nombre..."
-                                    className="w-full bg-transparent py-3 pl-12 pr-4 outline-none text-lg"
-                                    value={filtros.busqueda}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFiltros({ ...filtros, busqueda: e.target.value })}
-                                />
+                                <label className="text-outline font-label text-xs tracking-widest uppercase block mb-2">
+                                    Buscar Plantilla
+                                </label>
+                                <div className="relative">
+                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">
+                                        search
+                                    </span>
+                                    <input
+                                        type="text"
+                                        placeholder="Nombre o estilo..."
+                                        className="w-full bg-surface-container-highest border border-outline-variant/30 px-12 py-4 focus:outline-none focus:border-primary transition-all font-body placeholder-outline/50 text-sm rounded-sm"
+                                        value={filtros.busqueda}
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setFiltros({ ...filtros, busqueda: e.target.value })}
+                                    />
+                                </div>
                             </div>
-                            <div className="h-10 w-[1px] bg-gray-700 hidden md:block self-center"></div>
-                            <select
-                                className="bg-transparent px-4 py-3 outline-none cursor-pointer text-gray-300 font-light"
-                                value={filtros.orden}
-                                onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltros({ ...filtros, orden: e.target.value as FiltrosProyectos['orden'] })}
-                            >
-                                <option value="reciente" className="bg-[#1C1B28]">Novedades</option>
-                                <option value="antiguo" className="bg-[#1C1B28]">Más antiguos</option>
-                                <option value="valoracionAlta" className="bg-[#1C1B28]">Mejor valorados</option>
-                                <option value="valoracionBaja" className="bg-[#1C1B28]">Peor valorados</option>
-                            </select>
+                            
+                            <div className="flex-grow md:max-w-xs relative">
+                                <label className="text-outline font-label text-xs tracking-widest uppercase block mb-2">
+                                    Ordenar Por
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        className="w-full bg-surface-container-highest border border-outline-variant/30 px-4 py-4 pr-10 focus:outline-none focus:border-primary transition-all font-label text-xs uppercase appearance-none cursor-pointer rounded-sm text-on-surface"
+                                        value={filtros.orden}
+                                        onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltros({ ...filtros, orden: e.target.value as FiltrosProyectos['orden'] })}
+                                    >
+                                        <option value="reciente">Novedades</option>
+                                        <option value="antiguo">Más antiguos</option>
+                                        <option value="valoracionAlta">Mejor valorados</option>
+                                        <option value="valoracionBaja">Peor valorados</option>
+                                    </select>
+                                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+                                </div>
+                            </div>
                         </div>
                     </header>
 
-                    <main className="max-w-7xl mx-auto px-6 pb-24">
-                        {loading && <p className="text-sky-300 text-center text-xl animate-pulse font-bold">Cargando las mejores plantillas...</p>}
-                        {error && <p className="text-red-400 text-center bg-red-900/20 p-4 rounded-lg">{error}</p>}
+                    <main className="max-w-[1400px] mx-auto px-4 md:px-8 pb-24">
+                        {loading && (
+                            <div className="text-center py-20 flex flex-col items-center gap-4">
+                                <span className="material-symbols-outlined text-primary text-4xl animate-spin">refresh</span>
+                                <p className="font-label text-xs tracking-widest text-primary uppercase">Buscando en los archivos...</p>
+                            </div>
+                        )}
+                        {error && (
+                            <div className="text-center py-20 bg-error-container/20 text-error border border-error/50 p-6 rounded-sm mb-12">
+                                <span className="material-symbols-outlined text-4xl mb-2">error</span>
+                                <p className="font-body text-sm uppercase">{error}</p>
+                            </div>
+                        )}
 
                         {/* NOVEDADES MENSUALES */}
                         {!loading && mensuales.length > 0 && (
-                            <section className="mb-24">
-                                <h2 className="text-3xl font-bold mb-10 flex items-center gap-4">
-                                    <span className="w-12 h-[2px] bg-sky-500"></span>
+                            <section className="mb-24 relative">
+                                <h2 className="text-3xl md:text-4xl font-headline text-on-surface uppercase tracking-wide mb-12 border-b border-outline-variant/30 pb-4 flex items-center gap-4">
                                     Tendencias del Mes
+                                    <span className="material-symbols-outlined text-primary text-3xl">local_fire_department</span>
                                 </h2>
                                 <ListaProyectos
                                     proyectos={mensuales}
                                     favoritos={favoritos}
                                     onToggleFav={toggleFavorito}
-                                    puedeEditar={puedeEditar}
+                                    puedeEditarFn={() => false}
                                     navigate={navigate}
                                     onEliminar={handleEliminar}
                                 />
@@ -195,17 +240,17 @@ export default function PlantillasDemandadas() {
 
                         {/* POPULARES ANUALES */}
                         {!loading && anuales.length > 0 && (
-                            <section>
-                                <h2 className="text-3xl font-bold mb-10 flex items-center gap-4 text-gray-400">
-                                    <span className="w-12 h-[2px] bg-gray-600"></span>
+                            <section className="relative">
+                                <h2 className="text-2xl md:text-3xl font-headline text-outline-variant uppercase tracking-wide mb-12 border-b border-outline-variant/30 pb-4 flex items-center gap-4">
                                     Catálogo Histórico
+                                    <span className="material-symbols-outlined text-xl">history</span>
                                 </h2>
-                                <div className="opacity-90">
+                                <div className="opacity-90 grayscale-[20%] hover:grayscale-0 transition-all duration-500">
                                     <ListaProyectos
                                         proyectos={anuales}
                                         favoritos={favoritos}
                                         onToggleFav={toggleFavorito}
-                                        puedeEditar={puedeEditar}
+                                        puedeEditarFn={() => false}
                                         navigate={navigate}
                                         onEliminar={handleEliminar}
                                     />
@@ -214,7 +259,7 @@ export default function PlantillasDemandadas() {
                         )}
 
                         {!loading && plantillasFiltradas.length === 0 && (
-                            <div className="text-gray-500 text-center text-xl py-10">No se encontraron plantillas con esos filtros.</div>
+                            <div className="text-outline-variant font-label text-xs uppercase tracking-widest text-center py-10">No se encontraron plantillas con esos filtros.</div>
                         )}
                     </main>
                 </div>

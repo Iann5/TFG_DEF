@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CitaRepository::class)]
+// El ApiFilter = filtros de búsqueda, esto permite hacer consultas en la URL.
 #[ApiFilter(SearchFilter::class, properties: ['trabajador' => 'exact', 'fecha' => 'exact', 'usuario' => 'exact'])]
 #[ApiResource(
     normalizationContext: ['groups' => ['cita:read']]
@@ -58,6 +59,18 @@ class Cita
     #[ORM\Column(nullable: true)]
     #[Groups(['cita:read'])]
     private ?float $precio_total = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['cita:read'])]
+    private ?string $imagen = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['cita:read'])]
+    private ?string $descripcion = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['cita:read'])]
+    private ?int $tamano_cm = null;
 
     /**
      * @var Collection<int, Proyecto>
@@ -176,6 +189,42 @@ class Cita
     public function setPrecioTotal(?float $precio_total): static
     {
         $this->precio_total = $precio_total;
+
+        return $this;
+    }
+
+    public function getImagen(): ?string
+    {
+        return $this->imagen;
+    }
+
+    public function setImagen(?string $imagen): static
+    {
+        $this->imagen = $imagen;
+
+        return $this;
+    }
+
+    public function getDescripcion(): ?string
+    {
+        return $this->descripcion;
+    }
+
+    public function setDescripcion(?string $descripcion): static
+    {
+        $this->descripcion = $descripcion;
+
+        return $this;
+    }
+
+    public function getTamanoCm(): ?int
+    {
+        return $this->tamano_cm;
+    }
+
+    public function setTamanoCm(?int $tamano_cm): static
+    {
+        $this->tamano_cm = $tamano_cm;
 
         return $this;
     }

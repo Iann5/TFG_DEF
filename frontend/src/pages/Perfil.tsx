@@ -50,6 +50,8 @@ export default function Perfil() {
         const photoKey = getUserPhotoKey();
         if (photoKey) localStorage.removeItem(photoKey);
         localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userName');
         window.dispatchEvent(new Event('storage'));
         refreshAuth();
         navigate('/');
@@ -76,8 +78,9 @@ export default function Perfil() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-                <div className="animate-spin w-12 h-12 border-4 border-sky-300 border-t-transparent rounded-full" />
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+                <span className="material-symbols-outlined animate-spin text-primary text-5xl">refresh</span>
+                <span className="font-label text-sm tracking-widest uppercase text-primary animate-pulse">Cargando Perfil...</span>
             </div>
         );
     }
@@ -85,30 +88,38 @@ export default function Perfil() {
     return (
         <>
             <Navbar />
-            <div
-                className="min-h-screen bg-cover bg-center bg-no-repeat relative flex flex-col"
-                style={{ backgroundImage: 'url(/Plantilla-Sesion.png)' }}
-            >
-                <div className="absolute inset-0 bg-black/30" />
+            <div className="min-h-[100dvh] bg-background bg-halftone relative flex flex-col pt-20">
+                {/* Elemento de diseño de fondo */}
+                <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
 
-                <div className="relative z-10 flex flex-col flex-1 px-6 py-10 max-w-5xl mx-auto w-full">
+                <div className="relative z-10 flex flex-col flex-1 px-6 py-10 max-w-6xl mx-auto w-full">
 
                     {/* Botón volver */}
-                    <button onClick={() => navigate('/')} className="self-start text-white hover:text-sky-300 transition text-2xl mb-6">
-                        ←
+                    <button onClick={() => navigate('/')} className="self-start text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 mb-8 font-label text-xs uppercase tracking-[0.2em]">
+                        <span className="material-symbols-outlined text-sm">arrow_back</span>
+                        Volver al inicio
                     </button>
 
-                    {/* Título */}
-                    <h1 className="text-5xl font-bold text-white text-center mb-8 tracking-wide">Perfil</h1>
+                    {/* Título de Cabecera */}
+                    <div className="mb-12 border-l-4 border-primary pl-6">
+                        <h1 className="text-4xl md:text-5xl font-headline font-black text-on-surface uppercase tracking-tight">
+                            Panel <span className="text-primary italic">Personal</span>
+                        </h1>
+                        <p className="text-outline text-sm font-label tracking-widest uppercase mt-2">
+                            {userData?.nombre} {userData?.apellidos}
+                        </p>
+                    </div>
 
                     {/* Foto */}
-                    <FotoPerfil photo={photo} userId={userData?.id ?? null} onPhotoChange={setPhoto} />
+                    <div className="mb-10">
+                        <FotoPerfil photo={photo} userId={userData?.id ?? null} onPhotoChange={setPhoto} />
+                    </div>
 
                     {/* Contenido: dos columnas */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
                         {/* Panel izquierdo según rol */}
-                        <div className="bg-slate-700/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+                        <div className="bg-surface-container/60 backdrop-blur-xl border border-outline-variant/30 rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-8">
                             {isAdmin && <PanelAdmin />}
                             {!isAdmin && isTrabajador && (
                                 <PanelTrabajador
@@ -122,29 +133,38 @@ export default function Perfil() {
                         </div>
 
                         {/* Panel derecho: editar (igual para todos) */}
-                        <EditarPanel
-                            userData={userData}
-                            onCambiar={campo => setModal(campo as ModalType)}
-                            onLogout={handleLogout}
-                            onEliminar={() => setConfirmDelete(true)}
-                        />
+                        <div className="bg-surface-container/60 backdrop-blur-xl border border-outline-variant/30 rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-8">
+                            <EditarPanel
+                                userData={userData}
+                                onCambiar={campo => setModal(campo as ModalType)}
+                                onLogout={handleLogout}
+                                onEliminar={() => setConfirmDelete(true)}
+                            />
+                        </div>
                     </div>
                 </div>
 
                 {/* Modales de cambio de campo */}
-                {modal === 'email' && <ModalCambio titulo="Cambiar Email" tipo="email" placeholder="nuevo@email.com" onConfirm={v => handleCambiarCampo('email', v)} onClose={() => setModal(null)} />}
-                {modal === 'telefono' && <ModalCambio titulo="Cambiar Teléfono" tipo="tel" placeholder="6XX XXX XXX" onConfirm={v => handleCambiarCampo('telefono', v)} onClose={() => setModal(null)} />}
-                {modal === 'password' && <ModalCambio titulo="Cambiar Contraseña" tipo="password" placeholder="Nueva contraseña" onConfirm={v => handleCambiarCampo('password', v)} onClose={() => setModal(null)} />}
+                {modal === 'email' && <ModalCambio titulo="CAMBIAR EMAIL" tipo="email" placeholder="NUEVO@EMAIL.COM" onConfirm={v => handleCambiarCampo('email', v)} onClose={() => setModal(null)} />}
+                {modal === 'telefono' && <ModalCambio titulo="CAMBIAR TELÉFONO" tipo="tel" placeholder="6XX XXX XXX" onConfirm={v => handleCambiarCampo('telefono', v)} onClose={() => setModal(null)} />}
+                {modal === 'password' && <ModalCambio titulo="CAMBIAR CONTRASEÑA" tipo="password" placeholder="NUEVA CONTRASEÑA" onConfirm={v => handleCambiarCampo('password', v)} onClose={() => setModal(null)} />}
 
                 {/* Modal confirmar eliminar cuenta */}
                 {confirmDelete && (
-                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-                        <div className="bg-slate-800 border border-white/20 rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
-                            <h3 className="text-white text-xl font-bold mb-2">¿Eliminar cuenta?</h3>
-                            <p className="text-white/60 text-sm mb-6">Esta acción es irreversible.</p>
-                            <div className="flex gap-3">
-                                <button onClick={handleEliminarCuenta} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition">Sí, eliminar</button>
-                                <button onClick={() => setConfirmDelete(false)} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2.5 rounded-lg transition">Cancelar</button>
+                    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+                        <div className="bg-surface-container-highest border border-error/50 shadow-2xl rounded-md p-10 w-full max-w-sm text-center">
+                            <h3 className="text-error text-2xl font-headline font-black uppercase tracking-tight mb-4">¿Eliminar Cuenta?</h3>
+                            <p className="text-on-surface-variant font-body text-sm mb-8 leading-relaxed">
+                                Esta acción es <strong className="text-on-surface">irreversible</strong>. Todos tus datos, reservas y configuraciones desaparecerán para siempre.
+                            </p>
+                            <div className="flex flex-col gap-3">
+                                <button onClick={handleEliminarCuenta} className="w-full bg-error/10 hover:bg-error text-error hover:text-on-error border border-error/30 font-label tracking-widest text-xs uppercase py-3 transition-all rounded-sm flex items-center justify-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">delete_forever</span>
+                                    Sí, eliminar definitivamente
+                                </button>
+                                <button onClick={() => setConfirmDelete(false)} className="w-full bg-surface-container hover:bg-surface-container-low text-on-surface font-label tracking-widest text-xs uppercase py-3 transition-all border border-outline-variant/30 rounded-sm">
+                                    Cancelar
+                                </button>
                             </div>
                         </div>
                     </div>

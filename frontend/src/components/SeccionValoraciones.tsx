@@ -15,6 +15,9 @@ interface SeccionValoracionesProps {
     packId?: number;
     /** Texto que aparece en el mensaje "Ya has dejado tu valoración para este ___." */
     nombreRecurso?: string;
+    /** Segmento API para PATCH/DELETE de valoraciones (p. ej. `valoracion_productos`) */
+    valoracionApiSegment: string;
+    currentUserId: number | null;
 }
 
 /**
@@ -30,6 +33,8 @@ export default function SeccionValoraciones({
     productoId,
     packId,
     nombreRecurso = 'elemento',
+    valoracionApiSegment,
+    currentUserId,
 }: SeccionValoracionesProps) {
     const navigate = useNavigate();
 
@@ -49,8 +54,11 @@ export default function SeccionValoraciones({
                         </button>
                     </div>
                 ) : yaValoró ? (
-                    <div className="bg-sky-900/20 border border-sky-500/30 rounded-2xl p-5 text-center text-sky-300 font-semibold">
-                        ✅ Ya has dejado tu valoración para este {nombreRecurso}.
+                    <div className="bg-sky-900/20 border border-sky-500/30 rounded-2xl p-5 text-center text-sky-300 text-sm leading-relaxed">
+                        <span className="font-semibold block mb-1">✅ Ya has valorado este {nombreRecurso}.</span>
+                        <span className="text-sky-200/80">
+                            Puedes editar o eliminar tu reseña en la lista inferior.
+                        </span>
                     </div>
                 ) : (
                     <FormularioValoracion
@@ -62,7 +70,12 @@ export default function SeccionValoraciones({
                 )}
             </div>
 
-            <ListaComentarios valoraciones={valoraciones} />
+            <ListaComentarios
+                valoraciones={valoraciones}
+                valoracionApiSegment={valoracionApiSegment}
+                currentUserId={currentUserId}
+                onValoracionCambiada={onValoracionEnviada}
+            />
         </section>
     );
 }

@@ -17,6 +17,7 @@ class Producto
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['producto:read', 'pedido:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'productos')]
@@ -25,21 +26,25 @@ class Producto
     private ?Trabajador $creador = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['producto:read', 'pedido:read'])]
     private ?string $nombre = null;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $descripcion = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['producto:read', 'pedido:read'])]
     private ?string $imagen = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $imagenes = null;
 
     #[ORM\Column]
+    #[Groups(['producto:read', 'pedido:read'])]
     private ?float $precio_original = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['producto:read', 'pedido:read'])]
     private ?float $precio_oferta = null;
 
     #[ORM\Column]
@@ -208,7 +213,7 @@ class Producto
     public function removePack(Pack $pack): static
     {
         if ($this->packs->removeElement($pack)) {
-            // set the owning side to null (unless already changed)
+
             if ($pack->getProducto() === $this) {
                 $pack->setProducto(null);
             }
@@ -238,7 +243,7 @@ class Producto
     public function removeValoracionProducto(ValoracionProducto $valoracionProducto): static
     {
         if ($this->valoracionProductos->removeElement($valoracionProducto)) {
-            // set the owning side to null (unless already changed)
+
             if ($valoracionProducto->getProducto() === $this) {
                 $valoracionProducto->setProducto(null);
             }
@@ -268,7 +273,7 @@ class Producto
     public function removeLineaPedido(LineaPedido $lineaPedido): static
     {
         if ($this->lineaPedidos->removeElement($lineaPedido)) {
-            // set the owning side to null (unless already changed)
+
             if ($lineaPedido->getProducto() === $this) {
                 $lineaPedido->setProducto(null);
             }

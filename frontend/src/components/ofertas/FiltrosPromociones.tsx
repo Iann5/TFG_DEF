@@ -9,53 +9,67 @@ interface Props {
 
 export default function FiltrosPromociones({ filtros, setFiltros, onToggleCategoria }: Props) {
     return (
-        <div className="bg-[#2a2a2a] p-6 rounded-2xl mb-10 space-y-6 shadow-xl border border-gray-800">
-            <div className="flex flex-col md:flex-row gap-4">
-                <input
-                    type="text"
-                    placeholder="Buscar por nombre..."
-                    className="flex-1 bg-[#1a1a1a] p-3 rounded-xl border border-gray-700 outline-none focus:border-sky-500 text-white transition-all"
-                    value={filtros.busqueda}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFiltros({ ...filtros, busqueda: e.target.value })}
-                />
-                <select
-                    className="bg-[#1a1a1a] p-3 rounded-xl border border-gray-700 outline-none text-white cursor-pointer hover:border-sky-500 transition-all"
-                    value={filtros.orden}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltros({ ...filtros, orden: e.target.value as OrdenPromocion })}
-                >
-                    <option value="reciente">Novedades (Más recientes)</option>
-                    <option value="antiguo">Más antiguos</option>
-                    <option value="valoracionAlta">Mejor valorados a Menor</option>
-                    <option value="valoracionBaja">Menor valorados a Mayor</option>
-                </select>
+        <div className="glass-panel p-6 mb-12 space-y-6">
+            <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1 relative group disabled:opacity-50">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none group-focus-within:text-primary transition-colors z-10">search</span>
+                    <input
+                        type="text"
+                        placeholder="Buscar por nombre..."
+                        className="w-full bg-surface-container/50 border border-outline-variant/30 pl-10 pr-3 py-3 font-body text-base outline-none focus:border-primary transition-colors text-on-surface placeholder:text-outline-variant/50 rounded-sm"
+                        value={filtros.busqueda}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setFiltros({ ...filtros, busqueda: e.target.value })}
+                    />
+                </div>
+                <div className="relative min-w-[250px] group">
+                     <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none group-focus-within:text-primary transition-colors z-10">sort</span>
+                    <select
+                        className="w-full bg-surface-container/50 border border-outline-variant/30 pl-10 pr-10 py-3 font-body text-base outline-none text-on-surface cursor-pointer focus:border-primary transition-colors rounded-sm appearance-none"
+                        value={filtros.orden}
+                        onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltros({ ...filtros, orden: e.target.value as OrdenPromocion })}
+                    >
+                        <option value="reciente">Novedades (Más recientes)</option>
+                        <option value="antiguo">Más antiguos</option>
+                        <option value="valoracionAlta">Mejor valorados</option>
+                        <option value="valoracionBaja">Menor valorados</option>
+                    </select>
+                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline-variant">expand_more</span>
+                </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-gray-700">
-                <div className="flex flex-wrap gap-2 items-center">
-                    <span className="text-gray-400 text-sm mr-2 uppercase tracking-wide font-bold">Filtrar por:</span>
+            <div className="flex flex-wrap items-center gap-6 pt-6 border-t border-outline-variant/30">
+                <div className="flex flex-wrap gap-4 items-center">
+                    <span className="font-label text-xs tracking-[0.2em] uppercase text-outline mr-2 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[16px]">filter_list</span>
+                        Filtrar por:
+                    </span>
                     {(['servicio', 'plantilla', 'producto'] as CategoriaPromo[]).map(cat => (
                         <button
                             key={cat}
                             onClick={() => onToggleCategoria(cat)}
-                            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all border ${filtros.categorias.includes(cat)
-                                ? 'bg-sky-500 text-white border-sky-500 shadow-lg shadow-sky-500/30'
-                                : 'bg-transparent text-gray-400 border-gray-600 hover:border-gray-400'
+                            className={`px-4 py-2 font-label text-xs tracking-wide uppercase transition-all rounded-sm flex items-center gap-2 ${filtros.categorias.includes(cat)
+                                ? 'bg-primary/20 text-primary border border-primary/50 font-bold'
+                                : 'bg-surface-container border border-outline-variant/30 text-on-surface-variant hover:border-primary/50 hover:text-on-surface'
                                 }`}
                         >
-                            {cat}s {filtros.categorias.includes(cat) ? '✓' : ''}
+                            {cat}s {filtros.categorias.includes(cat) && <span className="material-symbols-outlined text-[16px]">check</span>}
                         </button>
                     ))}
                 </div>
-                <div className="h-6 w-px bg-gray-700 hidden md:block" />
-                <select
-                    className="bg-[#1a1a1a] p-2 rounded-xl border border-gray-700 outline-none text-sm text-gray-300 cursor-pointer"
-                    value={filtros.filtroPacks}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltros({ ...filtros, filtroPacks: e.target.value as EstadoFiltros['filtroPacks'] })}
-                >
-                    <option value="todos">Todos los Packs</option>
-                    <option value="solo-oferta">Solo Packs en Oferta y Ofertas</option>
-                    <option value="sin-oferta">Solo Packs sin Oferta</option>
-                </select>
+                <div className="h-6 w-px bg-outline-variant/30 hidden md:block" />
+                <div className="relative min-w-[250px] group">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none group-focus-within:text-primary transition-colors z-10">category</span>
+                    <select
+                        className="w-full bg-surface-container/50 border border-outline-variant/30 pl-10 pr-10 py-3 font-body text-base outline-none text-on-surface cursor-pointer focus:border-primary rounded-sm transition-colors appearance-none"
+                        value={filtros.filtroPacks}
+                        onChange={(e: ChangeEvent<HTMLSelectElement>) => setFiltros({ ...filtros, filtroPacks: e.target.value as EstadoFiltros['filtroPacks'] })}
+                    >
+                        <option value="todos">Todos los packs</option>
+                        <option value="solo-oferta">Ofertas Activas</option>
+                        <option value="sin-oferta">Solo sin oferta</option>
+                    </select>
+                     <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline-variant">expand_more</span>
+                </div>
             </div>
         </div>
     );

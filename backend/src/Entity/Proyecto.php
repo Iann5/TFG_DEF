@@ -23,13 +23,32 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiFilter(SearchFilter::class, properties: ['autor' => 'exact', 'tipo' => 'exact'])]
 #[ApiResource(
     normalizationContext: ['groups' => ['proyecto:read']],
+    denormalizationContext: ['groups' => ['proyecto:write']],
     operations: [
         new GetCollection(),
         new Get(),
-        new Post(processor: ProyectoProcessor::class),
-        new Put(processor: ProyectoProcessor::class),
-        new Patch(processor: ProyectoProcessor::class),
-        new Delete(),
+        // POST: solo usuarios autenticados con perfil de trabajador (el Processor asigna autor)
+        new Post(
+            security: "is_granted('ROLE_TRABAJADOR') or is_granted('ROLE_ADMIN')",
+            processor: ProyectoProcessor::class
+        ),
+        // PUT: solo el autor o un admin (lo verifica el ProyectoVoter)
+        new Put(
+            security: "is_granted('PROYECTO_EDIT', object)",
+            securityMessage: 'Solo puedes editar tus propios proyectos.',
+            processor: ProyectoProcessor::class
+        ),
+        // PATCH: igual que PUT
+        new Patch(
+            security: "is_granted('PROYECTO_EDIT', object)",
+            securityMessage: 'Solo puedes editar tus propios proyectos.',
+            processor: ProyectoProcessor::class
+        ),
+        // DELETE: solo el autor o un admin
+        new Delete(
+            security: "is_granted('PROYECTO_DELETE', object)",
+            securityMessage: 'Solo puedes eliminar tus propios proyectos.'
+        ),
     ]
 )]
 class Proyecto
@@ -37,7 +56,7 @@ class Proyecto
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['proyecto:read'])]
+    #[Groups(['proyecto:read', 'cita:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'proyectos')]
@@ -47,32 +66,41 @@ class Proyecto
 
     #[ORM\ManyToOne(inversedBy: 'proyectos')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['proyecto:read'])]
+    #[Groups(['proyecto:read', 'proyecto:write'])]
     private ?Estilo $estilo = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['proyecto:read'])]
+    #[Groups(['proyecto:read', 'cita:read', 'proyecto:write'])]
     private ?string $nombre = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['proyecto:read'])]
+    #[Groups(['proyecto:read', 'proyecto:write'])]
     private ?string $tipo = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['proyecto:read'])]
+    #[ORM\Column(type: 'text', length: 4294967295)]
+    #[Groups(['proyecto:read', 'cita:read', 'proyecto:write'])]
     private ?string $imagen = null;
 
     #[ORM\Column]
-    #[Groups(['proyecto:read'])]
+    #[Groups(['proyecto:read', 'proyecto:write'])]
     private ?float $precio_original = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['proyecto:read'])]
+    #[Groups(['proyecto:read', 'proyecto:write'])]
     private ?float $precio_oferta = null;
 
     #[ORM\Column]
-    #[Groups(['proyecto:read'])]
+    #[Groups(['proyecto:read', 'proyecto:write'])]
     private ?\DateTime $fecha_subida = null;
+
+    /**
+     * Descripción del proyecto / condiciones especiales del autor.
+     * Ej: 'Esta oferta se aplica a partir de 10cm de tamaño.'
+     * Nullable: los proyectos existentes no se ven afectados.
+     */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['proyecto:read', 'proyecto:write'])]
+    private ?string $descripcion = null;
 
     /**
      * @var Collection<int, Pack>
@@ -83,7 +111,7 @@ class Proyecto
     /**
      * @var Collection<int, ValoracionProyecto>
      */
-    #[ORM\OneToMany(targetEntity: ValoracionProyecto::class, mappedBy: 'proyecto')]
+    #[ORM\OneToMany(targetEntity: ValoracionProyecto::class, mappedBy: 'proyecto', cascade: ['remove'])]
     #[Groups(['proyecto:read'])]
     private Collection $valoracionProyectos;
 
@@ -201,6 +229,18 @@ class Proyecto
         return $this;
     }
 
+    public function getDescripcion(): ?string
+    {
+        return $this->descripcion;
+    }
+
+    public function setDescripcion(?string $descripcion): static
+    {
+        $this->descripcion = $descripcion;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Pack>
      */
@@ -222,7 +262,7 @@ class Proyecto
     public function removePack(Pack $pack): static
     {
         if ($this->packs->removeElement($pack)) {
-            // set the owning side to null (unless already changed)
+
             if ($pack->getProyecto() === $this) {
                 $pack->setProyecto(null);
             }
@@ -252,7 +292,7 @@ class Proyecto
     public function removeValoracionProyecto(ValoracionProyecto $valoracionProyecto): static
     {
         if ($this->valoracionProyectos->removeElement($valoracionProyecto)) {
-            // set the owning side to null (unless already changed)
+            
             if ($valoracionProyecto->getProyecto() === $this) {
                 $valoracionProyecto->setProyecto(null);
             }

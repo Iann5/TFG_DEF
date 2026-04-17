@@ -182,236 +182,277 @@ export default function PanelTrabajador({ estilosIniciales, descripcionInicial =
     };
 
     return (
-        <div>
-            <h2 className="text-3xl font-bold text-white mb-1">Perfil Profesional</h2>
-            <hr className="border-white/40 mb-4" />
+        <div className="flex flex-col gap-6">
+            <div>
+                <h2 className="text-2xl font-headline font-bold text-on-surface mb-2 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary">engineering</span>
+                    Perfil Profesional
+                </h2>
+                <div className="w-full h-px bg-outline-variant/30 mb-2"></div>
+            </div>
 
-            <div className="space-y-5">
-
+            <div className="space-y-8">
                 {/* ── ESPECIALIZACIONES ── */}
-                <div>
-                    <label className="block text-white/70 text-xs mb-2 font-medium uppercase tracking-wide">
-                        Especializaciones
-                    </label>
-
-                    {/* Desplegable + botón añadir */}
-                    <div className="flex gap-2">
-                        <select
-                            value={seleccionado}
-                            onChange={e => setSeleccionado(e.target.value)}
-                            className="flex-1 px-3 py-2 bg-slate-600/70 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-300 disabled:opacity-50"
-                            disabled={loadingEstilos || disponibles.length === 0}
-                        >
-                            <option value="">
-                                {loadingEstilos
-                                    ? 'Cargando...'
-                                    : disponibles.length === 0
-                                        ? 'Tienes todos los estilos'
-                                        : '— Añadir especialización —'}
-                            </option>
-                            {disponibles.map(e => (
-                                <option key={e.id} value={e.id}>{e.nombre}</option>
-                            ))}
-                        </select>
-                        <button
-                            onClick={handleAnadir}
-                            disabled={!seleccionado}
-                            className="px-4 py-2 bg-sky-500 hover:bg-sky-600 disabled:bg-slate-500 disabled:cursor-not-allowed text-white font-bold rounded-lg transition text-sm shrink-0"
-                        >
-                            + Añadir
-                        </button>
+                <div className="bg-surface-container-highest/30 rounded-sm p-5 border border-outline-variant/20 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <span className="material-symbols-outlined text-9xl">brush</span>
                     </div>
+                    
+                    <h3 className="text-primary font-label text-xs uppercase tracking-widest mb-4 flex items-center gap-2 relative z-10 border-b border-outline-variant/20 pb-2">
+                        <span className="material-symbols-outlined text-sm">palette</span>
+                        Especializaciones
+                    </h3>
 
-                    {/* Sin estilos */}
-                    {misEstilos.length === 0 && !loadingEstilos && (
-                        <p className="mt-2 text-white/40 text-xs">Sin especializaciones aún.</p>
-                    )}
+                    <div className="relative z-10">
+                        {/* Desplegable + botón añadir */}
+                        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                            <select
+                                value={seleccionado}
+                                onChange={e => setSeleccionado(e.target.value)}
+                                className="flex-1 px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-sm text-on-surface text-sm font-body focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 disabled:opacity-50 transition-all cursor-pointer"
+                                disabled={loadingEstilos || disponibles.length === 0}
+                            >
+                                <option value="">
+                                    {loadingEstilos
+                                        ? 'Cargando Especializaciones...'
+                                        : disponibles.length === 0
+                                            ? 'Tienes todos los estilos'
+                                            : '— Selecciona Nuevo Estilo —'}
+                                </option>
+                                {disponibles.map(e => (
+                                    <option key={e.id} value={e.id}>{e.nombre}</option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={handleAnadir}
+                                disabled={!seleccionado}
+                                className="px-6 py-3 bg-primary hover:bg-primary/90 disabled:bg-surface-container-highest disabled:text-outline disabled:cursor-not-allowed text-[#00285d] font-label text-xs font-bold uppercase tracking-widest rounded-sm transition-all sm:w-auto w-full flex justify-center items-center gap-1 shadow-sm"
+                            >
+                                <span className="material-symbols-outlined text-sm">add</span>
+                                Añadir
+                            </button>
+                        </div>
 
-                    {/* Chips de mis especializaciones (expandibles para gestionar fotos) */}
-                    <div className="mt-3 space-y-2">
-                        {misEstilos.map(e => {
-                            const fotos = fotosMap[e.id] ?? [];
-                            const isOpen = expanded === e.id;
-                            return (
-                                <div key={e.id} className="bg-indigo-900/40 border border-indigo-400/30 rounded-xl overflow-hidden">
-                                    {/* Cabecera del chip */}
-                                    <div className="flex items-center justify-between px-4 py-2">
-                                        <button
-                                            onClick={() => setExpanded(isOpen ? null : e.id)}
-                                            className="text-white font-semibold text-sm flex items-center gap-2 hover:text-sky-300 transition"
-                                        >
-                                            <span>{isOpen ? '▾' : '▸'}</span>
-                                            {e.nombre}
-                                            <span className="text-white/40 text-xs">({fotos.length}/3 fotos)</span>
-                                        </button>
-                                        <button
-                                            onClick={() => handleQuitar(e.id)}
-                                            className="text-white/50 hover:text-red-400 transition text-xs font-bold"
-                                            title="Quitar especialización"
-                                        >
-                                            ✕ Quitar
-                                        </button>
-                                    </div>
+                        {/* Sin estilos */}
+                        {misEstilos.length === 0 && !loadingEstilos && (
+                            <p className="mt-2 text-outline-variant font-label text-[10px] uppercase tracking-widest">Sin especializaciones aún.</p>
+                        )}
 
-                                    {/* Panel de fotos (desplegable) */}
-                                    {isOpen && (
-                                        <div className="px-4 pb-4 border-t border-indigo-400/20 pt-3">
-                                            <p className="text-white/50 text-xs mb-2">Fotos de ejemplo (máx. 3):</p>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {fotos.map((foto, idx) => (
-                                                    <div key={idx} className="relative aspect-square rounded-lg overflow-hidden bg-slate-700">
-                                                        <img src={foto} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                        {/* Chips de mis especializaciones */}
+                        <div className="mt-5 flex flex-col gap-3">
+                            {misEstilos.map(e => {
+                                const fotos = fotosMap[e.id] ?? [];
+                                const isOpen = expanded === e.id;
+                                return (
+                                    <div key={e.id} className="bg-surface-container border border-outline-variant/30 hover:border-primary/50 rounded-sm overflow-hidden transition-all duration-300">
+                                        {/* Cabecera del chip */}
+                                        <div className="flex items-center justify-between px-5 py-3">
+                                            <button
+                                                onClick={() => setExpanded(isOpen ? null : e.id)}
+                                                className="text-on-surface font-headline font-semibold text-sm flex items-center gap-3 hover:text-primary transition-colors flex-1 text-left"
+                                            >
+                                                <span className={`material-symbols-outlined text-sm transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`}>chevron_right</span>
+                                                <span className="uppercase tracking-wider">{e.nombre}</span>
+                                                <span className="text-[#8c909f] font-label text-[10px] tracking-widest bg-background/50 px-2 py-0.5 rounded-sm">
+                                                    {fotos.length}/3 fotos
+                                                </span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleQuitar(e.id)}
+                                                className="text-outline hover:text-error transition-colors p-1 flex items-center justify-center shrink-0"
+                                                title="Quitar especialización"
+                                            >
+                                                <span className="material-symbols-outlined text-sm">close</span>
+                                            </button>
+                                        </div>
+
+                                        {/* Panel de fotos (desplegable) */}
+                                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                            <div className="px-5 pb-5 border-t border-outline-variant/10 pt-4 bg-background/30">
+                                                <p className="text-[#8c909f] font-label text-[10px] uppercase tracking-[0.2em] mb-4">Fotos del portafolio (Máx. 3):</p>
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                    {fotos.map((foto, idx) => (
+                                                        <div key={idx} className="relative aspect-square rounded-sm overflow-hidden bg-surface-container-highest border border-outline-variant/20 shadow-sm group">
+                                                            <div className="absolute inset-0 bg-primary/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
+                                                            <img src={foto} alt={`Foto ${e.nombre} ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                            <button
+                                                                onClick={() => handleEliminarFoto(e.id, idx)}
+                                                                className="absolute top-2 right-2 bg-error hover:bg-error/80 text-on-error w-6 h-6 rounded-sm text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20 shadow-sm"
+                                                                title="Eliminar foto"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[14px]">delete</span>
+                                                            </button>
+                                                        </div>
+                                                    ))}
+
+                                                    {/* Slot para añadir foto */}
+                                                    {fotos.length < 3 && (
                                                         <button
-                                                            onClick={() => handleEliminarFoto(e.id, idx)}
-                                                            className="absolute top-1 right-1 bg-red-600/90 hover:bg-red-700 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center leading-none"
-                                                            title="Eliminar foto"
+                                                            onClick={() => fileRefs.current[e.id]?.click()}
+                                                            className="aspect-square rounded-sm border hover:border-primary bg-surface-container-highest/50 hover:bg-surface-container transition-all flex flex-col items-center justify-center text-outline hover:text-primary group border-dashed"
                                                         >
-                                                            ✕
+                                                            <span className="material-symbols-outlined text-2xl mb-1 group-hover:scale-110 transition-transform">add_photo_alternate</span>
+                                                            <span className="font-label text-[10px] uppercase tracking-widest mt-1">Añadir Foto</span>
                                                         </button>
-                                                    </div>
-                                                ))}
+                                                    )}
 
-                                                {/* Slot para añadir foto (si hay < 3) */}
-                                                {fotos.length < 3 && (
-                                                    <button
-                                                        onClick={() => fileRefs.current[e.id]?.click()}
-                                                        className="aspect-square rounded-lg border-2 border-dashed border-indigo-400/40 bg-slate-700/50 hover:border-sky-400 hover:bg-slate-600/50 transition flex flex-col items-center justify-center text-white/40 hover:text-sky-300"
-                                                    >
-                                                        <span className="text-2xl">+</span>
-                                                        <span className="text-xs">Añadir foto</span>
-                                                    </button>
-                                                )}
-
-                                                {/* Input oculto por estilo */}
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    ref={el => { fileRefs.current[e.id] = el; }}
-                                                    onChange={ev => handleFotoChange(e.id, ev)}
-                                                />
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        ref={el => { fileRefs.current[e.id] = el; }}
+                                                        onChange={ev => handleFotoChange(e.id, ev)}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
-
-                <hr className="border-white/20" />
 
                 {/* ── DESCRIPCIÓN ── */}
-                <div className="bg-slate-700/30 p-5 rounded-xl border border-white/10 mb-4">
-                    <h3 className="text-white font-bold mb-4 text-sm tracking-wide">📝 Descripción del Perfil</h3>
-                    <textarea
-                        value={descripcion}
-                        onChange={e => setDescripcion(e.target.value)}
-                        placeholder="Describe tu estilo y experiencia..."
-                        rows={3}
-                        className="w-full px-4 py-3 bg-slate-600/50 border border-white/20 rounded-lg text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300 resize-none"
-                    />
-                    <div className="flex justify-end mt-4">
-                        <button
-                            onClick={handleGuardarConfig}
-                            disabled={guardandoDesc || !trabajadorId}
-                            className="bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold py-2 px-6 rounded-lg transition text-sm shadow-[0_0_15px_rgba(56,189,248,0.2)]"
-                        >
-                            {guardandoDesc ? 'Guardando...' : 'Guardar Descripción'}
-                        </button>
+                <div className="bg-surface-container-highest/30 rounded-sm p-5 border border-outline-variant/20">
+                    <h3 className="text-primary font-label text-xs uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-outline-variant/20 pb-2">
+                        <span className="material-symbols-outlined text-sm">edit_document</span>
+                        Biografía / Descripción
+                    </h3>
+                    <div className="flex flex-col gap-4">
+                        <textarea
+                            value={descripcion}
+                            onChange={e => setDescripcion(e.target.value)}
+                            placeholder="Describe tu filosofía artística y experiencia en el estudio..."
+                            rows={4}
+                            className="w-full px-4 py-3 bg-surface-container border border-outline-variant/30 rounded-sm text-on-surface font-body text-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 resize-y transition-all"
+                        />
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handleGuardarConfig}
+                                disabled={guardandoDesc || !trabajadorId}
+                                className="bg-secondary hover:bg-secondary/90 disabled:opacity-50 text-on-secondary font-label font-bold text-xs uppercase tracking-widest py-3 px-6 rounded-sm transition-all shadow-sm flex items-center justify-center gap-2"
+                            >
+                                <span className="material-symbols-outlined text-sm">{guardandoDesc ? 'sync' : 'save'}</span>
+                                {guardandoDesc ? 'Guardando...' : 'Guardar Info'}
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                <hr className="border-white/20" />
 
                 {/* ── AGENDA ── */}
                 <button
                     onClick={() => navigate('/agenda')}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition"
+                    className="w-full bg-surface-container hover:bg-surface-container-low border border-outline-variant/30 hover:border-primary text-on-surface font-headline font-bold text-sm uppercase tracking-wider py-4 rounded-sm transition-all flex items-center justify-center gap-2 group shadow-sm"
                 >
-                    📅 Agenda
+                    <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">event_available</span>
+                    Gestionar tu Agenda
                 </button>
 
-                <hr className="border-white/20" />
-
-                {/* ── CONFIGURACIÓN DE TARIFAS Y TIEMPOS ── */}
-                <div className="bg-slate-700/30 p-5 rounded-xl border border-white/10 mb-4">
-                    <h3 className="text-white font-bold mb-4 text-sm tracking-wide flex items-center gap-2">
-                        <span>🏷️</span> Tus Tarifas y Tiempos
+                {/* ── TARIFAS Y TIEMPOS ── */}
+                <div className="bg-surface-container-highest/30 rounded-sm p-5 border border-outline-variant/20">
+                    <h3 className="text-primary font-label text-xs uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-outline-variant/20 pb-2">
+                        <span className="material-symbols-outlined text-sm">payments</span>
+                        Tarifas y Tiempos de Trabajo
                     </h3>
 
                     {/* Formulario Añadir/Actualizar */}
-                    <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                        <div className="flex-1">
-                            <label className="block text-white/70 text-xs mb-1 font-medium uppercase tracking-wide">
-                                Tamaño (cm)
-                            </label>
-                            <input
-                                type="number"
-                                min="1"
-                                value={cmInput}
-                                onChange={e => setCmInput(Number(e.target.value))}
-                                className="w-full px-4 py-3 bg-slate-600/50 border border-white/20 rounded-lg text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
-                            />
+                    <div className="bg-surface-container p-4 rounded-sm border border-outline-variant/20 mb-6">
+                        <span className="font-label text-[#8c909f] text-[10px] uppercase tracking-[0.2em] mb-3 block">Configurar Nueva Tarifa</span>
+                        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                            <div className="flex-1">
+                                <label className="block text-on-surface font-label text-[10px] uppercase tracking-widest mb-2 flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[14px] text-outline">straighten</span>
+                                    Tamaño (cm)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={cmInput}
+                                    onChange={e => setCmInput(Number(e.target.value))}
+                                    className="w-full px-4 py-2 bg-surface-container-highest border border-outline-variant/30 rounded-sm text-on-surface font-body text-sm focus:outline-none focus:border-primary transition-colors text-center"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-on-surface font-label text-[10px] uppercase tracking-widest mb-2 flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[14px] text-outline">schedule</span>
+                                    Minutos Estimados
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={minInput}
+                                    onChange={e => setMinInput(Number(e.target.value))}
+                                    className="w-full px-4 py-2 bg-surface-container-highest border border-outline-variant/30 rounded-sm text-on-surface font-body text-sm focus:outline-none focus:border-primary transition-colors text-center"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-on-surface font-label text-[10px] uppercase tracking-widest mb-2 flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[14px] text-outline">euro</span>
+                                    Precio Base (€)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={precioInput}
+                                    onChange={e => setPrecioInput(Number(e.target.value))}
+                                    className="w-full px-4 py-2 bg-surface-container-highest border border-outline-variant/30 rounded-sm text-on-surface font-body text-sm focus:outline-none focus:border-primary transition-colors text-center text-primary font-bold"
+                                />
+                            </div>
                         </div>
-                        <div className="flex-1">
-                            <label className="block text-white/70 text-xs mb-1 font-medium uppercase tracking-wide">
-                                Minutos
-                            </label>
-                            <input
-                                type="number"
-                                min="1"
-                                value={minInput}
-                                onChange={e => setMinInput(Number(e.target.value))}
-                                className="w-full px-4 py-3 bg-slate-600/50 border border-white/20 rounded-lg text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <label className="block text-white/70 text-xs mb-1 font-medium uppercase tracking-wide">
-                                Precio Base (€)
-                            </label>
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={precioInput}
-                                onChange={e => setPrecioInput(Number(e.target.value))}
-                                className="w-full px-4 py-3 bg-slate-600/50 border border-white/20 rounded-lg text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
-                            />
+
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handleGuardarTarifa}
+                                disabled={guardandoTarifas || !trabajadorId}
+                                className="bg-[#2e5d36] hover:bg-[#3d7a47] disabled:opacity-50 text-white font-label font-bold text-[10px] uppercase tracking-[0.2em] py-2.5 px-6 rounded-sm transition-all sm:w-auto w-full flex justify-center items-center gap-1"
+                            >
+                                <span className="material-symbols-outlined text-[14px]">save</span>
+                                {guardandoTarifas ? 'Guardando...' : 'Aplicar Tarifa'}
+                            </button>
                         </div>
                     </div>
 
-                    <div className="flex justify-end mb-6">
-                        <button
-                            onClick={handleGuardarTarifa}
-                            disabled={guardandoTarifas || !trabajadorId}
-                            className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-2 px-6 rounded-lg transition text-sm shadow-[0_0_15px_rgba(22,163,74,0.3)]"
-                        >
-                            {guardandoTarifas ? 'Guardando...' : 'Guardar / Actualizar Tarifa'}
-                        </button>
-                    </div>
-
-                    {/* Lista visual de tarifas almacenadas */}
-                    {tarifas && tarifas.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-white/10">
-                            <h4 className="text-white/60 text-xs uppercase tracking-wide mb-3 font-semibold">Tus tarifas configuradas</h4>
+                    {/* Lista visual de tarifas */}
+                    {tarifas && tarifas.length > 0 ? (
+                        <div className="mt-2">
+                            <h4 className="text-[#8c909f] font-label text-[10px] uppercase tracking-[0.2em] mb-3">Tarifas Actuales:</h4>
                             <div className="flex flex-col gap-2">
                                 {tarifas.map((t, index) => (
-                                    <div key={index} className="flex items-center justify-between bg-white/5 border border-white/10 px-4 py-3 rounded-lg hover:bg-white/10 transition">
-                                        <div className="flex gap-6 text-sm">
-                                            <span className="text-sky-300 font-bold w-12">{t.cm} cm</span>
-                                            <span className="text-white/80 w-24">{t.minutos} min</span>
-                                            <span className="text-green-300 font-bold">{t.precio} €</span>
+                                    <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-surface-container/50 border border-outline-variant/20 px-4 py-3 rounded-sm hover:bg-surface-container transition-colors group gap-3">
+                                        <div className="flex items-center gap-4 sm:gap-8 w-full sm:w-auto overflow-hidden">
+                                            <div className="flex flex-col">
+                                                <span className="font-label text-[10px] text-outline uppercase tracking-wider mb-0.5">Tamaño</span>
+                                                <span className="text-secondary font-headline font-bold">{t.cm} cm</span>
+                                            </div>
+                                            <div className="w-px h-8 bg-outline-variant/30 hidden sm:block"></div>
+                                            <div className="flex flex-col">
+                                                <span className="font-label text-[10px] text-outline uppercase tracking-wider mb-0.5">Tiempo</span>
+                                                <span className="text-on-surface-variant font-body text-sm">{t.minutos} min</span>
+                                            </div>
+                                            <div className="w-px h-8 bg-outline-variant/30 hidden sm:block"></div>
+                                            <div className="flex flex-col">
+                                                <span className="font-label text-[10px] text-outline uppercase tracking-wider mb-0.5">Precio</span>
+                                                <span className="text-primary font-headline font-bold">{t.precio} €</span>
+                                            </div>
                                         </div>
                                         <button
                                             onClick={() => handleEliminarTarifa(t.cm)}
-                                            className="text-red-400 hover:text-white bg-red-900/40 hover:bg-red-600 px-3 py-1 rounded text-xs font-bold transition"
+                                            className="w-full sm:w-auto text-error bg-error-container/20 hover:bg-error-container hover:text-on-error border border-error/20 hover:border-error/50 px-3 py-1.5 rounded-sm font-label text-[10px] uppercase tracking-widest transition-colors flex items-center justify-center gap-1 shrink-0"
                                         >
-                                            Eliminar
+                                            <span className="material-symbols-outlined text-[14px]">delete</span>
+                                            Quitar
                                         </button>
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    ) : (
+                        <div className="text-center py-6 bg-surface-container/30 border border-outline-variant/20 border-dashed rounded-sm mt-4">
+                            <span className="material-symbols-outlined text-outline-variant text-3xl mb-2">money_off</span>
+                            <p className="text-on-surface-variant font-body text-sm">Aún no has configurado tarifas.</p>
+                            <p className="text-[#8c909f] font-label text-[10px] uppercase tracking-widest mt-1">Añade tu primera tarifa de trabajo.</p>
                         </div>
                     )}
                 </div>

@@ -36,20 +36,23 @@ export default function FotoPerfil({ photo, userId, onPhotoChange }: Props) {
     };
 
     return (
-        <div className="flex flex-col items-center mb-10">
+        <div className="flex flex-col items-center">
             {/* Círculo de foto */}
             <div
-                className="w-36 h-36 rounded-full border-4 border-white overflow-hidden bg-slate-600 flex items-center justify-center cursor-pointer hover:opacity-80 transition"
+                className="w-36 h-36 rounded-full border-2 border-primary/50 overflow-hidden bg-surface-container-highest flex items-center justify-center cursor-pointer hover:border-primary hover:shadow-[0_0_20px_rgba(173,198,255,0.2)] transition-all group relative"
                 onClick={() => fileInputRef.current?.click()}
                 title="Cambiar foto de perfil"
             >
                 {photo ? (
-                    <img src={photo} alt="Foto de perfil" className="w-full h-full object-cover" />
+                    <img src={photo} alt="Foto de perfil" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                    <svg className="w-20 h-20 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
-                    </svg>
+                    <span className="material-symbols-outlined text-outline group-hover:text-primary text-5xl transition-colors">account_circle</span>
                 )}
+                
+                {/* Overlay on hover */}
+                <div className="absolute inset-0 bg-surface-container/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                    <span className="material-symbols-outlined text-primary text-3xl">photo_camera</span>
+                </div>
             </div>
 
             {/* Input oculto */}
@@ -63,9 +66,10 @@ export default function FotoPerfil({ photo, userId, onPhotoChange }: Props) {
 
             <button
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-3 text-white font-bold hover:text-sky-300 transition text-sm"
+                className="mt-4 text-on-surface hover:text-primary transition-colors font-label text-[10px] uppercase tracking-[0.2em] flex items-center gap-1"
             >
-                Cambiar Foto de perfil
+                <span className="material-symbols-outlined text-xs">edit</span>
+                Cambiar Avatar
             </button>
         </div>
     );

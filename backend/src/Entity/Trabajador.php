@@ -184,7 +184,7 @@ class Trabajador
     public function removeProyecto(Proyecto $proyecto): static
     {
         if ($this->proyectos->removeElement($proyecto)) {
-            // set the owning side to null (unless already changed)
+            
             if ($proyecto->getAutor() === $this) {
                 $proyecto->setAutor(null);
             }
@@ -214,7 +214,7 @@ class Trabajador
     public function removeProducto(Producto $producto): static
     {
         if ($this->productos->removeElement($producto)) {
-            // set the owning side to null (unless already changed)
+            
             if ($producto->getCreador() === $this) {
                 $producto->setCreador(null);
             }
@@ -244,7 +244,7 @@ class Trabajador
     public function removePack(Pack $pack): static
     {
         if ($this->packs->removeElement($pack)) {
-            // set the owning side to null (unless already changed)
+            
             if ($pack->getCreador() === $this) {
                 $pack->setCreador(null);
             }
@@ -274,7 +274,7 @@ class Trabajador
     public function removeCita(Cita $cita): static
     {
         if ($this->citas->removeElement($cita)) {
-            // set the owning side to null (unless already changed)
+            
             if ($cita->getTrabajador() === $this) {
                 $cita->setTrabajador(null);
             }
@@ -304,7 +304,7 @@ class Trabajador
     public function removeValoracionTrabajador(ValoracionTrabajador $valoracionTrabajador): static
     {
         if ($this->valoracionTrabajadors->removeElement($valoracionTrabajador)) {
-            // set the owning side to null (unless already changed)
+            
             if ($valoracionTrabajador->getTrabajador() === $this) {
                 $valoracionTrabajador->setTrabajador(null);
             }

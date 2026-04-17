@@ -13,6 +13,7 @@ export default function LoginPage() {
     // Estados del formulario
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     // Estados de la interfaz (UX)
     const [error, setError] = useState<string | null>(null);
@@ -54,6 +55,9 @@ export default function LoginPage() {
                 if (meResponse.data?.nombre) {
                     localStorage.setItem('userName', meResponse.data.nombre);
                 }
+                if (meResponse.data?.id != null) {
+                    localStorage.setItem('userId', String(meResponse.data.id));
+                }
             } catch {
                 // Si falla la carga de foto, no bloqueamos el login
                 console.warn('No se pudo cargar la foto de perfil desde /api/me.');
@@ -83,27 +87,22 @@ export default function LoginPage() {
     };
 
     return (
-        <div
-            className="flex min-h-screen items-center justify-center px-4 bg-cover bg-center bg-no-repeat relative"
-            style={{
-                backgroundImage: 'url(/Plantilla-Sesion.png)',
-            }}
-        >
-            {/* Overlay oscuro semitransparente */}
-            {/* <div className="absolute inset-0 bg-black/40"></div> */}
-
+        <div className="flex min-h-[100dvh] items-center justify-center px-4 bg-background bg-halftone relative py-20">
+            {/* Elemento de diseño de fondo */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+            
             {/* Contenedor del formulario */}
-            <div className="w-full max-w-md bg-slate-700/60 backdrop-blur-sm p-10 rounded-2xl shadow-2xl relative z-10">
+            <div className="w-full max-w-md bg-surface-container-low/80 backdrop-blur-xl p-10 rounded-lg border border-outline-variant/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative z-10 box-border">
 
                 {/* Título */}
-                <h2 className="text-4xl font-bold text-center mb-8 text-white tracking-wide">
-                    INICIAR SESIÓN
+                <h2 className="text-4xl font-headline font-black text-center mb-8 text-on-surface uppercase tracking-tight">
+                    Iniciar <span className="text-primary italic">Sesión</span>
                 </h2>
 
                 {/* Mensaje de Error */}
                 {error && (
-                    <div className="bg-red-500/30 border-l-4 border-red-400 text-red-100 p-4 mb-6 rounded-lg text-sm backdrop-blur-sm" role="alert">
-                        <p className="font-bold">Error</p>
+                    <div className="bg-error-container/20 border-l-4 border-error p-4 mb-6 shadow-md text-sm text-on-surface-variant font-body rounded-r-md" role="alert">
+                        <p className="font-label text-xs uppercase tracking-widest text-error mb-1 font-bold">Error de Acceso</p>
                         <p>{error}</p>
                     </div>
                 )}
@@ -113,13 +112,13 @@ export default function LoginPage() {
 
                     {/* Campo Email */}
                     <div>
-                        <label className="block text-sm font-medium text-white mb-2">
-                            Email
+                        <label className="block text-xs font-label text-[#8c909f] mb-2 tracking-[0.2em] uppercase">
+                            Correo Electrónico
                         </label>
                         <input
                             type="email"
-                            className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:bg-white/30 transition backdrop-blur-sm disabled:opacity-50"
-                            placeholder="ejemplo@tatuajes.com"
+                            className="w-full px-4 py-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all disabled:opacity-50"
+                            placeholder="tatuaje@paradise.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
@@ -129,58 +128,70 @@ export default function LoginPage() {
 
                     {/* Campo Contraseña */}
                     <div>
-                        <label className="block text-sm font-medium text-white mb-2">
+                        <label className="block text-xs font-label text-[#8c909f] mb-2 tracking-[0.2em] uppercase">
                             Contraseña
                         </label>
-                        <input
-                            type="password"
-                            className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:bg-white/30 transition backdrop-blur-sm disabled:opacity-50"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            disabled={loading}
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                className="w-full px-4 py-3 pr-12 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all disabled:opacity-50"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                disabled={loading}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(prev => !prev)}
+                                className="absolute inset-y-0 right-0 px-3 text-outline-variant hover:text-primary transition-colors"
+                                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                disabled={loading}
+                            >
+                                <span className="material-symbols-outlined text-[20px]">
+                                    {showPassword ? 'visibility_off' : 'visibility'}
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Botón Submit */}
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-full py-3 px-4 rounded-lg text-white font-bold transition duration-200 text-lg
+                        className={`w-full py-4 block text-center font-label tracking-widest text-sm font-bold uppercase transition-all duration-300 rounded-sm
                             ${loading
-                                ? 'bg-gray-600 cursor-not-allowed'
-                                : 'bg-black/70 hover:bg-black shadow-lg hover:shadow-xl'
+                                ? 'bg-surface-container-highest text-outline cursor-not-allowed shadow-none'
+                                : 'primary-gradient-cta text-[#00285d] shadow-[0_5px_20px_rgba(173,198,255,0.15)] hover:shadow-[0_5px_30px_rgba(173,198,255,0.3)] hover:-translate-y-0.5'
                             }`}
                     >
                         {loading ? (
-                            <span className="flex items-center justify-center">
-                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Entrando...
+                            <span className="flex items-center justify-center font-label tracking-widest">
+                                <span className="material-symbols-outlined animate-spin mr-2 text-sm">refresh</span>
+                                Autenticando...
                             </span>
-                        ) : 'Acceder'}
+                        ) : 'ACCEDER AL ESTUDIO'}
                     </button>
                 </form>
 
                 {/* Enlace a Registro */}
-                <p className="mt-8 text-center text-sm text-white/90">
-                    ¿No tienes cuenta?{' '}
-                    <span
+                <div className="mt-8 text-center border-t border-outline-variant/20 pt-8">
+                    <p className="text-xs font-label tracking-widest text-outline uppercase mb-4">
+                        ¿Nuevo en el estudio?
+                    </p>
+                    <button
                         onClick={() => navigate('/registro')}
-                        className="text-sky-300 hover:text-sky-200 hover:underline cursor-pointer font-semibold transition"
+                        className="w-full block text-center bg-transparent border border-outline-variant/40 text-on-surface font-label tracking-widest text-xs uppercase py-3 rounded-sm hover:border-primary hover:text-primary transition-all mb-6"
                     >
-                        Regístrate aquí
-                    </span>
-                    <br />
+                        CREAR CUENTA
+                    </button>
+                    
                     <span onClick={() => navigate('/')}
-                        className='text-white/70 hover:text-white hover:underline cursor-pointer font-medium transition mt-2 inline-block'
+                        className='text-on-surface-variant hover:text-primary cursor-pointer font-label transition-colors inline-flex items-center gap-1 uppercase text-[10px] tracking-widest'
                     >
-                        Volver al inicio
+                        <span className="material-symbols-outlined text-[10px]">arrow_back</span> Volver al inicio
                     </span>
-                </p>
+                </div>
             </div>
         </div>
     );

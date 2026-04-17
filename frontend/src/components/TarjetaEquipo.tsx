@@ -9,31 +9,33 @@ interface Props {
 
 const TarjetaEquipo: React.FC<Props> = ({ trabajador, onVerInfo }) => {
     return (
-        <div className="bg-[#2D2C3E]/80 backdrop-blur-sm border-2 border-[#4A495C] rounded-2xl p-4 flex gap-4 shadow-xl mb-6">
+        <div className="glass-panel flex flex-col md:flex-row gap-6 mb-8 group hover:-translate-y-1 transition-all overflow-hidden border border-outline-variant/30">
             {/* Contenedor IMG */}
-            <div className="w-32 h-32 bg-[#9CA3AF] rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-500">
+            <div className="w-full md:w-48 h-48 md:h-auto flex-shrink-0 flex items-center justify-center overflow-hidden bg-surface-container relative">
+                <div className="absolute inset-0 bg-primary/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-500 pointer-events-none"></div>
                 {trabajador.imagen ? (
-                    <img src={trabajador.imagen} alt={trabajador.nombre} className="w-full h-full object-cover" />
+                    <img src={trabajador.imagen} alt={trabajador.nombre} className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-700 hover:scale-105" />
                 ) : (
-                    <span className="text-gray-700 font-bold">IMG</span>
+                    <span className="text-outline-variant font-headline text-4xl tracking-widest opacity-50">IMG</span>
                 )}
             </div>
 
             {/* Contenedor Info */}
-            <div className="flex-grow flex flex-col">
-                <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-white text-xl font-medium">{trabajador.nombre}</h3>
-                    {/* Botón +INFO celeste */}
+            <div className="flex-grow flex flex-col justify-between p-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                    <h3 className="text-primary text-3xl font-headline tracking-wide uppercase">{trabajador.nombre}</h3>
                     <button
                         onClick={() => onVerInfo(trabajador.id)}
-                        className="bg-[#4DB8CC] hover:bg-[#2c8393] text-black text-xs font-bold px-3 py-1 rounded-md transition-colors"
+                        className="bg-surface-container border border-outline hover:border-primary text-on-surface hover:text-primary font-label text-xs uppercase tracking-widest px-6 py-2 transition-all group/btn relative overflow-hidden"
                     >
-                        +INFO
+                        <div className="absolute inset-0 bg-primary/10 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 ease-out"></div>
+                        <span className="relative z-10 flex items-center gap-2">
+                           <span className="material-symbols-outlined text-sm">visibility</span> INFO
+                        </span>
                     </button>
                 </div>
 
-                {/* Bloque de Descripción Gris */}
-                <div className="bg-[#9CA3AF] rounded-lg p-3 flex-grow text-gray-800 text-sm italic">
+                <div className="bg-surface-container/50 border border-outline-variant/20 p-4 flex-grow text-on-surface font-body text-sm leading-relaxed rounded-sm">
                     {trabajador.descripcion || "Descripción del tatuador..."}
                 </div>
             </div>

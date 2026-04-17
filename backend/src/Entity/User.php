@@ -3,7 +3,12 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\State\UserPasswordHasher;
@@ -13,65 +18,86 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['user:read']],
+    denormalizationContext: ['groups' => ['user:write']],
+    operations: [
+        new GetCollection(),
+        new Get(),
+        new Post(),
+        new Put(),
+        new Patch(),
+        new Delete(),
+    ]
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['user:read', 'valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read', 'user:read', 'user:write'])]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
+    #[Groups(['user:read', 'user:write', 'trabajador:read', 'proyecto:read'])]
     private array $roles = [];
 
     /**
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Groups(['user:write'])]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read', 'proyecto:read', 'cita:read', 'producto:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read', 'proyecto:read', 'cita:read', 'producto:read', 'user:read', 'user:write'])]
     private ?string $nombre = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read', 'proyecto:read', 'cita:read', 'producto:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read', 'proyecto:read', 'cita:read', 'producto:read', 'user:read', 'user:write'])]
     private ?string $apellidos = null;
 
     #[ORM\Column(length: 20)]
+    #[Groups(['user:read', 'user:write'])]
     private ?string $dni = null;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read', 'user:write'])]
     private ?string $telefono = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['user:write'])]
     private ?string $pais = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['user:write'])]
     private ?string $direccion = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['user:write'])]
     private ?string $provincia = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['user:write'])]
     private ?string $localidad = null;
 
     #[ORM\Column(length: 10)]
+    #[Groups(['user:write'])]
     private ?string $cp = null;
 
     #[ORM\Column(type: 'text', length: 4294967295, nullable: true)]
-    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read'])]
+    #[Groups(['valoracion_proyecto:read', 'valoracion_trabajador:read', 'valoracion_producto:read', 'valoracion_pack:read', 'trabajador:read', 'user:write'])]
     private ?string $foto_perfil = null;
 
     #[ORM\Column]
+    #[Groups(['user:write'])]
     private ?\DateTime $fecha_registro = null;
 
     #[ORM\OneToOne(mappedBy: 'usuario', cascade: ['persist', 'remove'])]
@@ -115,7 +141,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
+        // todos los usuarios creados tienen el rol de ROLE_USER
         $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
@@ -178,7 +204,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Ensure the session doesn't contain actual password hashes by CRC32C-hashing them, as supported since Symfony 7.3.
+     * Asegurarse de que la sesión no contenga los hashes reales de las contraseñas
      */
     public function __serialize(): array
     {
@@ -191,7 +217,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[\Deprecated]
     public function eraseCredentials(): void
     {
-        // @deprecated, to be removed when upgrading to Symfony 8
+        // @deprecated
     }
 
     public function getNombre(): ?string
@@ -333,7 +359,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setTrabajador(?Trabajador $trabajador): static
     {
-        // set the owning side of the relation if necessary
+        // Establece el lado propietario de la relación si fuera necesario.
         if ($trabajador !== null && $trabajador->getUsuarioId() !== $this) {
             $trabajador->setUsuarioId($this);
         }

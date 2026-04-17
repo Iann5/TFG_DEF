@@ -7,12 +7,13 @@ interface ListaProps {
   proyectos: ProyectoNormalizado[];
   favoritos: number[];
   onToggleFav: (id: number) => void;
-  puedeEditar: boolean | null;
+  /** Función que evalúa si el usuario actual puede editar/eliminar UN proyecto concreto */
+  puedeEditarFn: (proyecto: ProyectoNormalizado) => boolean;
   navigate: NavigateFunction;
   onEliminar: (id: number) => void;
 }
 
-export default function ListaProyecto({ proyectos, favoritos, onToggleFav, puedeEditar, navigate, onEliminar }: ListaProps) {
+export default function ListaProyecto({ proyectos, favoritos, onToggleFav, puedeEditarFn, navigate, onEliminar }: ListaProps) {
   if (proyectos.length === 0) {
     return <div className="text-gray-500 text-center text-xl py-10">No se encontraron proyectos con estos filtros.</div>;
   }
@@ -25,7 +26,8 @@ export default function ListaProyecto({ proyectos, favoritos, onToggleFav, puede
           proyecto={p}
           esFavorito={favoritos.includes(p.id)}
           onToggleFav={onToggleFav}
-          puedeEditar={puedeEditar}
+          // Evaluamos la función POR PROYECTO — nunca el mismo boolean para todos
+          puedeEditar={puedeEditarFn(p)}
           navigate={navigate}
           onEliminar={onEliminar}
         />

@@ -105,45 +105,45 @@ export default function FormularioEstilo() {
             onSubmit={handleSubmit}
         >
             {loading ? (
-                <p className="text-center animate-pulse text-sky-400 font-bold">Cargando datos...</p>
+                <p className="text-center animate-pulse text-primary font-headline uppercase tracking-wide">Cargando datos...</p>
             ) : (
                 <>
                     {/* Nombre */}
-                    <div className="space-y-2">
-                        <label className="text-gray-400 text-sm font-bold uppercase tracking-wider">Nombre del Estilo</label>
+                    <div className="space-y-2 relative group flex flex-col items-start block overflow-visible mt-2">
+                        <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">Nombre del Estilo</label>
                         <input
                             type="text"
                             value={nombre}
                             onChange={e => setNombre(e.target.value)}
-                            className="w-full bg-[#1C1B28] border border-white/10 p-4 rounded-xl outline-none focus:border-sky-500 transition-all"
+                            className="w-full bg-surface-container border border-outline-variant/30 p-3 font-body text-base outline-none focus:border-primary transition-colors text-on-surface placeholder:text-outline-variant/50 rounded-sm"
                             required
                         />
                     </div>
 
                     {/* Información */}
-                    <div className="space-y-2">
-                        <label className="text-gray-400 text-sm font-bold uppercase tracking-wider">Descripción / Información</label>
+                    <div className="space-y-2 relative group flex flex-col items-start block overflow-visible mt-6">
+                        <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-1">Descripción / Información</label>
                         <textarea
                             value={informacion}
                             onChange={e => setInformacion(e.target.value)}
-                            className="w-full bg-[#1C1B28] border border-white/10 p-4 rounded-xl outline-none focus:border-sky-500 transition-all h-32 resize-none"
+                            className="w-full bg-surface-container border border-outline-variant/30 p-3 font-body text-base outline-none focus:border-primary transition-colors h-32 resize-none text-on-surface placeholder:text-outline-variant/50 rounded-sm"
                             required
                         />
                     </div>
 
                     {/* Fotos del Estilo */}
-                    <div className="space-y-4 pt-4 border-t border-white/5">
-                        <label className="text-gray-400 text-sm font-bold uppercase tracking-wider block">Fotos del Estilo (Máx 3)</label>
+                    <div className="space-y-3 pt-6 border-t border-outline-variant/30 mt-6 relative group">
+                        <label className="text-outline font-label text-xs tracking-[0.2em] uppercase block mb-2">Fotos del Estilo (Máx 3)</label>
                         <div className="grid grid-cols-3 gap-4">
                             {fotosEjemplo.map((foto, index) => (
-                                <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-white/10">
-                                    <img src={foto} className="w-full h-full object-cover" alt={`Foto ${index + 1}`} />
+                                <div key={index} className="relative aspect-square rounded-sm overflow-hidden border border-outline-variant/30 group/img transition-transform hover:-translate-y-1">
+                                    <img src={foto} className="w-full h-full object-cover transition-opacity opacity-80 group-hover/img:opacity-100" alt={`Foto ${index + 1}`} />
                                     <button
                                         type="button"
                                         onClick={() => eliminarFotoEjemplo(index)}
-                                        className="absolute top-1 right-1 bg-red-600 p-1 rounded-full hover:bg-red-500 transition-colors"
+                                        className="absolute top-1 right-1 bg-error/90 w-6 h-6 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity rounded-sm"
                                     >
-                                        <span className="block w-4 h-4 text-[10px] font-bold text-center leading-4">✕</span>
+                                        <span className="material-symbols-outlined text-on-error text-[14px]">close</span>
                                     </button>
                                 </div>
                             ))}
@@ -151,10 +151,10 @@ export default function FormularioEstilo() {
                                 <button
                                     type="button"
                                     onClick={() => fotosInputRef.current?.click()}
-                                    className="aspect-square rounded-xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center hover:border-sky-500/50 hover:bg-sky-500/5 transition-all text-gray-500 hover:text-sky-400"
+                                    className="aspect-square rounded-sm border border-dashed border-outline-variant/50 flex flex-col items-center justify-center hover:border-primary/50 hover:bg-primary/5 transition-colors text-outline-variant/50 hover:text-primary bg-surface-container"
                                 >
-                                    <span className="text-2xl font-light">+</span>
-                                    <span className="text-[10px] uppercase font-bold">Subir</span>
+                                    <span className="material-symbols-outlined text-3xl font-light mb-1">add_photo_alternate</span>
+                                    <span className="font-label text-[10px] uppercase font-bold tracking-[0.2em]">Subir</span>
                                 </button>
                             )}
                         </div>

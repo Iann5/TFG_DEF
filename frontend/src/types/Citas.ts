@@ -28,13 +28,22 @@ export interface Trabajador {
 }
 
 export interface FirmasState {
-    responsabilidad: string;
+    // Firmas (opcionales)
+    responsabilidad?: string;
     privacidad?: string;
+
+    // Protección para confirmar reserva:
+    // - el usuario debe haber descargado el/los documentos
+    // - y marcar el checkbox de compromiso
+    descargadoResponsabilidad: boolean;
+    descargadoPrivacidad?: boolean;
+    compromisoEntregar: boolean;
 }
 
 export interface SlotHora {
     hora: string;
     disponible: boolean;
+    motivo?: 'ocupado' | 'superaLimite';
 }
 
 export interface LocationState {

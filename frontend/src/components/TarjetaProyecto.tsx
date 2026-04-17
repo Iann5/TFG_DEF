@@ -2,6 +2,7 @@
 import { Heart, Star } from 'lucide-react';
 import { type NavigateFunction } from 'react-router-dom';
 import { type ProyectoNormalizado } from '../types/proyecto';
+import { useAuth } from '../context/AuthContext';
 
 interface TarjetaProps {
   proyecto: ProyectoNormalizado;
@@ -17,95 +18,143 @@ export default function TarjetaProyecto({
   proyecto, esFavorito, onToggleFav, puedeEditar, navigate, onEliminar, isTop = false
 }: TarjetaProps) {
 
+  const { isLoggedIn, hasRole } = useAuth();
+  const isTrabajadorOrAdmin = hasRole('ROLE_TRABAJADOR') || hasRole('ROLE_ADMIN');
+
   const esPlantilla = proyecto.tipo.toLowerCase().includes('plantilla');
 
   return (
-    <div className={`bg-[#323444] border ${isTop ? 'border-yellow-500/50 shadow-yellow-900/20' : 'border-[#3B82F6]/30 shadow-sky-900/20'} rounded-2xl overflow-hidden shadow-2xl flex flex-col group hover:border-sky-500 transition-all duration-300 relative`}>
+    <div className={`glass-panel flex flex-col group hover:-translate-y-1 transition-all duration-500 relative overflow-hidden h-full ${isTop ? 'border-primary ring-1 ring-primary/50' : 'border-outline-variant/30'}`}>
+
+      {/* Decorative Texture Overlay */}
+      <div className="absolute inset-0 bg-halftone opacity-10 pointer-events-none mix-blend-overlay"></div>
 
       {isTop && (
-        <div className="absolute top-4 left-4 z-20 bg-yellow-500 text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-lg">
-          Top del Mes
+        <div className="absolute top-0 right-0 z-20 bg-primary text-on-primary text-[10px] uppercase font-label tracking-widest px-3 py-1 font-bold">
+          TOP DEL MES
         </div>
       )}
 
-      {esPlantilla && (
+      {esPlantilla && isLoggedIn && (
         <button
           onClick={() => onToggleFav(proyecto.id)}
-          className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-all"
+          className="absolute top-3 right-3 z-20 p-2 bg-surface-container-highest/80 backdrop-blur-md border border-outline-variant/30 rounded-full hover:bg-surface-container hover:scale-110 transition-all duration-300"
         >
-          <Heart size={20} className={`${esFavorito ? 'fill-red-500 text-red-500' : 'text-white'}`} />
+          <Heart size={18} strokeWidth={2} className={`${esFavorito ? 'fill-error text-error' : 'text-outline hover:text-on-surface'}`} />
         </button>
       )}
 
-      <div className="h-52 bg-white overflow-hidden relative">
+      <div className="h-[280px] bg-surface-container-highest border-b border-outline-variant/20 overflow-hidden relative p-6 flex items-center justify-center cursor-pointer" onClick={() => navigate(`/proyecto/${proyecto.id}`)}>
+        {/* Subtle inner gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none"></div>
+        
         {proyecto.imagen ? (
-          <img src={proyecto.imagen} alt={proyecto.titulo} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 opacity-90" />
+          <img src={proyecto.imagen} alt={proyecto.titulo} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 opacity-90 filter grayscale group-hover:grayscale-0 relative z-0" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-700 font-black text-4xl">IMG</div>
+          <div className="w-full h-full flex items-center justify-center text-outline-variant border border-outline-variant/20 bg-surface-container relative">
+             <div className="absolute inset-0 bg-halftone opacity-30"></div>
+             <span className="material-symbols-outlined text-4xl relative z-10">image</span>
+          </div>
         )}
       </div>
 
-      <div className="p-6 flex-1 flex flex-col">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-white font-bold text-xl leading-tight group-hover:text-sky-400 transition-colors">{proyecto.titulo}</h3>
-          <div className="flex items-center gap-1 bg-black/30 px-2 py-1 rounded-lg border border-white/5">
-            <Star size={14} className={proyecto.media > 0 ? "fill-yellow-500 text-yellow-500" : "text-gray-500"} />
-            <span className="text-xs font-bold text-white/80">{proyecto.media > 0 ? proyecto.media.toFixed(1) : 'Nuevo'}</span>
+      <div className="p-6 flex-1 flex flex-col relative z-20 bg-gradient-to-b from-surface-container/50 to-surface-container">
+        <div className="flex justify-between items-start mb-2 gap-4">
+          <h3 
+            className="text-on-surface font-headline text-2xl font-bold uppercase tracking-wide group-hover:text-primary transition-colors cursor-pointer line-clamp-2"
+            onClick={() => navigate(`/proyecto/${proyecto.id}`)}
+          >
+            {proyecto.titulo}
+          </h3>
+          <div className="flex items-center gap-1 bg-surface-container-highest px-2 py-1 border border-outline-variant/30 rounded-sm shrink-0">
+            <Star size={14} strokeWidth={2} className={proyecto.media > 0 ? "fill-primary text-primary" : "text-outline"} />
+            <span className="text-xs font-label font-bold tracking-widest text-on-surface-variant">{proyecto.media > 0 ? proyecto.media.toFixed(1) : 'NEW'}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 mb-3">
-          <span className="bg-sky-900/50 text-sky-300 text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded">{proyecto.tipo}</span>
-          <span className="text-white/40 text-xs font-medium truncate">Artista: {proyecto.nombreTrabajador}</span>
+        <div className="flex flex-wrap items-center gap-3 mb-3">
+          <span className="font-label text-[10px] uppercase tracking-[0.2em] text-primary border border-primary/30 px-2 py-0.5 rounded-sm bg-primary/5">{proyecto.tipo}</span>
+          <div className="flex items-center gap-1.5 opacity-80">
+             <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
+             <span className="text-on-surface-variant font-body text-xs uppercase tracking-wider">Artista: <span className="text-on-surface font-semibold">{proyecto.nombreTrabajador}</span></span>
+          </div>
         </div>
 
-        {/* <p className="text-white/60 text-sm line-clamp-2 mb-4 font-light">{proyecto.descripcion}</p> */}
-
         {/* Precio */}
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex justify-start items-center gap-3 mb-8 pb-4 border-b border-outline-variant/20">
           {proyecto.precioOferta != null ? (
-            <>
-              <span className="text-white/40 line-through text-sm">{proyecto.precioOriginal.toFixed(2)} €</span>
-              <span className="text-green-400 font-bold">{proyecto.precioOferta.toFixed(2)} €</span>
-              <span className="bg-green-900/40 text-green-400 text-[10px] font-bold px-1.5 py-0.5 rounded">OFERTA</span>
-            </>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-end gap-3">
+              <span className="text-error font-headline text-lg line-through opacity-70">{proyecto.precioOriginal.toFixed(2)} €</span>
+              <span className="text-primary font-headline text-3xl font-bold">{proyecto.precioOferta.toFixed(2)} €</span>
+              <span className="bg-error/10 text-error font-label text-[10px] uppercase tracking-widest px-1.5 py-0.5 border border-error/20 rounded-sm self-center mb-1">Oferta</span>
+              </div>
+
+              {/* Descripción — sutil */}
+              {proyecto.descripcion && (
+                <p className="text-xs text-white/50 leading-relaxed">
+                  {proyecto.descripcion}
+                </p>
+              )}
+            </div>
           ) : (
-            <span className="text-white font-bold">{proyecto.precioOriginal.toFixed(2)} €</span>
+            <div className="flex flex-col gap-2">
+              <span className="text-on-surface font-headline text-2xl font-bold">{proyecto.precioOriginal.toFixed(2)} €</span>
+              {proyecto.descripcion && (
+                <p className="text-xs text-white/50 leading-relaxed">
+                  {proyecto.descripcion}
+                </p>
+              )}
+            </div>
           )}
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-auto space-y-3">
           {/* Botón Reservar cita */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation(); // Avoid triggering card click if there's any
-              navigate('/cita');
-            }}
-            className="w-full py-2 mb-2 bg-green-600 hover:bg-green-500 text-white text-sm font-bold rounded-xl transition flex items-center justify-center gap-2"
-          >
-            📅 Reservar cita
-          </button>
+          {!isTrabajadorOrAdmin && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/cita');
+              }}
+              className="w-full primary-gradient-cta"
+            >
+              <div className="cta-content">
+                <span>Reservar Cita</span>
+                <span className="material-symbols-outlined text-sm">calendar_add_on</span>
+              </div>
+            </button>
+          )}
 
-          {/* Botón Ver detalles — siempre visible */}
+          {/* Botón Ver detalles */}
           <button
             onClick={() => navigate(`/proyecto/${proyecto.id}`)}
-            className="w-full py-2 mb-3 bg-sky-700/60 hover:bg-sky-600 text-white text-sm font-bold rounded-xl transition"
+            className="w-full py-3 bg-transparent border border-outline hover:border-primary text-on-surface hover:text-primary font-label text-xs uppercase tracking-widest transition-all duration-300 rounded-sm text-center"
           >
-            🔍 Ver detalles
+            Ver Detalles
           </button>
+          
           {puedeEditar && !isTop && (
-            <div className="flex gap-2 pt-4 border-t border-white/10 mt-2">
+            <div className="flex gap-3 pt-4 mt-2 border-t border-outline-variant/20">
               <button
-                onClick={() => navigate(`/editarProyecto/${proyecto.id}`)}
-                className="flex-1 py-1.5 bg-amber-600/80 hover:bg-amber-600 text-white text-sm font-bold rounded-lg transition"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/editarProyecto/${proyecto.id}`);
+                }}
+                className="flex-1 py-2 bg-surface-container-highest hover:bg-white text-on-surface hover:text-background border border-outline-variant/30 hover:border-white font-label text-[10px] uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-1"
               >
-                ✏️ Editar
+                <span className="material-symbols-outlined text-[14px]">edit</span>
+                Editar
               </button>
               <button
-                onClick={() => onEliminar(proyecto.id)}
-                className="flex-1 py-1.5 bg-red-700/80 hover:bg-red-700 text-white text-sm font-bold rounded-lg transition"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEliminar(proyecto.id);
+                }}
+                className="flex-1 py-2 bg-error-container/50 hover:bg-error text-error hover:text-on-error border border-error/50 font-label text-[10px] uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-1"
               >
-                🗑 Eliminar
+                <span className="material-symbols-outlined text-[14px]">delete</span>
+                Elimin.
               </button>
             </div>
           )}

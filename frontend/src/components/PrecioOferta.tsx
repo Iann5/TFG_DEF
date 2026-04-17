@@ -1,7 +1,7 @@
 interface PrecioOfertaProps {
     precioOriginal: number;
     precioOferta: number | null;
-    /** 'lg' muestra el precio en text-3xl (páginas de detalle), 'sm' en tamaño normal (tarjetas). Por defecto 'lg'. */
+    /** 'lg' muestra el precio en size más grande (páginas de detalle), 'sm' en tamaño normal (tarjetas). */
     size?: 'sm' | 'lg';
 }
 
@@ -11,19 +11,19 @@ interface PrecioOfertaProps {
  */
 export default function PrecioOferta({ precioOriginal, precioOferta, size = 'lg' }: PrecioOfertaProps) {
     const precioPrincipalClass = size === 'lg'
-        ? 'text-green-400 font-bold text-3xl'
-        : 'text-green-400 font-bold text-xl sm:text-2xl';
+        ? 'text-primary font-headline font-bold text-3xl'
+        : 'text-primary font-headline font-bold text-xl sm:text-2xl';
 
     const precioNormalClass = size === 'lg'
-        ? 'text-white font-bold text-3xl'
-        : 'text-white font-bold text-xl sm:text-2xl';
+        ? 'text-on-surface font-headline font-bold text-3xl'
+        : 'text-on-surface font-headline font-bold text-xl sm:text-2xl';
 
     if (precioOferta !== null) {
         return (
-            <div className="flex items-center gap-1.5 w-full whitespace-nowrap">
-                <span className="text-white/40 line-through text-xs sm:text-sm shrink-0">{precioOriginal.toFixed(2)} €</span>
+            <div className="flex items-center gap-2 w-full whitespace-nowrap">
+                <span className="text-error font-headline font-semibold line-through text-xs sm:text-sm shrink-0 opacity-70 mb-1">{precioOriginal.toFixed(2)} €</span>
                 <span className={`${precioPrincipalClass} shrink-0 truncate`}>{precioOferta.toFixed(2)} €</span>
-                <span className="bg-green-900/40 text-green-400 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ml-auto flex-none uppercase tracking-widest">OFERTA</span>
+                <span className="bg-error/55 border border-error/60 text-white text-[9px] sm:text-[10px] font-label px-1.5 py-0.5 rounded-sm shrink-0 ml-auto flex-none uppercase tracking-[0.2em] mb-1">OFERTA</span>
             </div>
         );
     }

@@ -39,6 +39,7 @@ export interface RawPack {
   imagenes?: string[];
   precioOriginal?: number;
   precioOferta?: number;
+  stock?: number;
   tipoPack?: string;
   fecha_subida?: string;
   valoracionPacks?: ValoracionBase[];
@@ -60,6 +61,7 @@ export interface RawProducto {
   imagenes?: string[];
   precio_original: number;
   precio_oferta?: number | null;
+  stock?: number;
   fecha_subida: string;
   valoracionProductos?: ValoracionBase[];
   media?: number; // Agregado

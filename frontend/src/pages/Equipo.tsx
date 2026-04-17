@@ -8,14 +8,13 @@ import ModalDetalleEquipo from '../components/ModalDetalleEquipo';
 import MultiSelect from '../components/MultiSelect';
 import { type Trabajador } from '../types/trabajador';
 
-
 // ─── Página Equipo ─────────────────────────────────────────────────────────────
 
 const ORDEN_OPTS = [
-    { value: 'az', label: 'Alfabético (A→Z)' },
-    { value: 'za', label: 'Alfabético (Z→A)' },
-    { value: 'val_desc', label: 'Mayor valoración' },
-    { value: 'val_asc', label: 'Menor valoración' },
+    { value: 'az', label: 'ALFABÉTICO (A→Z)' },
+    { value: 'za', label: 'ALFABÉTICO (Z→A)' },
+    { value: 'val_desc', label: 'MAYOR VALORACIÓN' },
+    { value: 'val_asc', label: 'MENOR VALORACIÓN' },
 ];
 
 interface TrabajadorConMedia extends Trabajador {
@@ -73,35 +72,44 @@ const Equipo: React.FC = () => {
     })();
 
     return (
-        <div className="min-h-screen relative bg-[#1C1B28] font-sans">
-            {/* Fondo Manga Invertido */}
-            <div
-                className="fixed inset-0 z-0 opacity-20 pointer-events-none"
-                style={{ backgroundImage: "url('/paneles.jpg')", backgroundSize: 'cover', filter: 'invert(1)' }}
-            />
+        <div className="min-h-screen bg-background text-on-surface flex flex-col relative selection:bg-primary/30 selection:text-primary">
+            {/* Texture overlay */}
+            <div className="fixed inset-0 pointer-events-none mix-blend-overlay opacity-20 z-0 bg-[url('/noise.svg')]"></div>
 
             <div className="relative z-10 flex flex-col min-h-screen">
                 <Navbar />
 
-                <main className="container mx-auto px-4 py-8 flex-grow max-w-4xl">
+                <main className="flex-grow pt-32 pb-20 relative z-10 px-4 md:px-8 max-w-[1200px] w-full mx-auto">
                     {/* Cabecera */}
-                    <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-                        <h1 className="text-4xl font-light text-white">
-                            Nuestro <span className="text-sky-300 font-bold">Equipo</span>
-                        </h1>
+                    <div className="mb-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-8 border-b border-outline-variant/30 pb-6">
+                        <div className="relative">
+                            <span className="font-label text-primary text-xs uppercase tracking-[0.3em] block mb-4">Los Especialistas</span>
+                            <h1 className="font-headline text-5xl md:text-7xl font-bold uppercase tracking-tight leading-none">
+                                Nuestro<br/>
+                                <span className="text-outline-variant">Equipo</span>
+                            </h1>
+                            {/* Decorative elements */}
+                            <div className="absolute -left-4 top-0 w-1 h-32 bg-primary"></div>
+                            <div className="absolute left-0 -top-4 w-12 h-1 bg-primary"></div>
+                        </div>
                         {!loading && (
-                            <MultiSelect
-                                options={ORDEN_OPTS}
-                                selected={orden}
-                                onChange={setOrden}
-                            />
+                            <div className="w-full md:w-80">
+                                <MultiSelect
+                                    options={ORDEN_OPTS}
+                                    selected={orden}
+                                    onChange={setOrden}
+                                    placeholder="Ordernar equipo..."
+                                />
+                            </div>
                         )}
                     </div>
 
                     {loading ? (
-                        <p className="text-white text-center">Cargando equipo artístico...</p>
+                        <div className="text-center py-20 text-primary font-headline text-3xl tracking-widest uppercase animate-pulse">
+                            Cargando equipo...
+                        </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {trabajadoresOrdenados.map((t) => (
                                 <TarjetaEquipo key={t.id} trabajador={t} onVerInfo={setModalId} />
                             ))}

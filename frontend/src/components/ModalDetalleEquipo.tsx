@@ -9,7 +9,8 @@ import ListaComentarios from './ListaComentarios';
 import FormularioValoracion from './FormularioValoracion';
 import MultiSelect from './MultiSelect';
 import TarjetaMiniProyecto, { type ProyectoMini, mediaProyecto } from './TarjetaMiniProyecto';
-import { type ValoracionDetalle } from '../types/Valoracion';
+import { type ValoracionDetalle, type RawValoracion } from '../types/Valoracion';
+import { getStoredUserId, mapearValoraciones, yaValoroEnLista } from '../utils/valoraciones';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -22,14 +23,6 @@ interface TrabajadorDetalle {
     imagen?: string;
     usuario?: { nombre?: string; apellidos?: string; email?: string; telefono?: string; foto_perfil?: string };
     estilos?: { id: number; nombre: string }[];
-}
-
-interface RawValoracion {
-    id: number;
-    estrellas: number;
-    comentario?: string;
-    fecha: string;
-    usuario?: { nombre?: string; foto_perfil?: string; };
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -48,17 +41,6 @@ const ORDEN_TRABAJOS_OPTS = [
 function mediaValoraciones(vals: ValoracionDetalle[]): number {
     if (!vals.length) return 0;
     return vals.reduce((a, v) => a + v.estrellas, 0) / vals.length;
-}
-
-function mapRawVals(raw: RawValoracion[]): ValoracionDetalle[] {
-    return raw.map(v => ({
-        id: v.id,
-        estrellas: v.estrellas,
-        comentario: v.comentario,
-        fecha: v.fecha,
-        nombreUsuario: v.usuario?.nombre ?? 'Usuario',
-        fotoPerfil: v.usuario?.foto_perfil,
-    }));
 }
 
 function aplicarFiltros(proyectos: ProyectoMini[], ordenTrabajos: string[]): ProyectoMini[] {
@@ -91,20 +73,27 @@ interface Props {
 
 export default function ModalDetalleEquipo({ trabajadorId, onClose }: Props) {
     const navigate = useNavigate();
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, hasRole } = useAuth();
+    const isTrabajadorOrAdmin = hasRole('ROLE_TRABAJADOR') || hasRole('ROLE_ADMIN');
 
     const [trabajador, setTrabajador] = useState<TrabajadorDetalle | null>(null);
     const [proyectos, setProyectos] = useState<ProyectoMini[]>([]);
     const [valoraciones, setValoraciones] = useState<ValoracionDetalle[]>([]);
     const [loading, setLoading] = useState(true);
     const [ordenTrabajos, setOrdenTrabajos] = useState<string[]>([]);
-    const [nombreUsuario] = useState<string | null>(localStorage.getItem('userName'));
+    const [nombreUsuario, setNombreUsuario] = useState<string | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+    useEffect(() => {
+        setNombreUsuario(isLoggedIn ? localStorage.getItem('userName') : null);
+        setCurrentUserId(isLoggedIn ? getStoredUserId() : null);
+    }, [isLoggedIn]);
 
     const valsEndpoint = `/valoracion_trabajadors?trabajador=${encodeURIComponent(`/api/trabajadors/${trabajadorId}`)}`;
 
     const recargarValoraciones = async () => {
         const res = await api.get<RawValoracion[]>(valsEndpoint);
-        setValoraciones(mapRawVals(Array.isArray(res.data) ? res.data : []));
+        setValoraciones(mapearValoraciones(Array.isArray(res.data) ? res.data : []));
     };
 
     useEffect(() => {
@@ -116,7 +105,7 @@ export default function ModalDetalleEquipo({ trabajadorId, onClose }: Props) {
             .then(([tRes, pRes, vRes]) => {
                 setTrabajador(tRes.data);
                 setProyectos(Array.isArray(pRes.data) ? pRes.data : []);
-                setValoraciones(mapRawVals(Array.isArray(vRes.data) ? vRes.data : []));
+                setValoraciones(mapearValoraciones(Array.isArray(vRes.data) ? vRes.data : []));
             })
             .catch(console.error)
             .finally(() => setLoading(false));
@@ -130,7 +119,7 @@ export default function ModalDetalleEquipo({ trabajadorId, onClose }: Props) {
 
     const proyectosFiltrados = aplicarFiltros(proyectos, ordenTrabajos);
     const media = mediaValoraciones(valoraciones);
-    const yaValoró = isLoggedIn && nombreUsuario != null && valoraciones.some(v => v.nombreUsuario === nombreUsuario);
+    const yaValoró = yaValoroEnLista(isLoggedIn, valoraciones, currentUserId, nombreUsuario);
     const nombreArtista = trabajador?.usuario?.nombre
         ? `${trabajador.usuario.nombre} ${trabajador?.usuario?.apellidos || ''}`
         : 'Artista Desconocido';
@@ -144,16 +133,16 @@ export default function ModalDetalleEquipo({ trabajadorId, onClose }: Props) {
             onClick={e => { if (e.target === e.currentTarget) onClose(); }}
         >
             {/* Overlay */}
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
 
             {/* Panel */}
-            <div className="relative z-10 bg-[#1C1B28] border border-[#3B82F6]/20 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="relative z-10 glass-panel border border-outline-variant/30 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-sm">
 
                 {/* Header */}
-                <div className="sticky top-0 z-10 bg-[#1C1B28] border-b border-white/5 px-6 py-4 flex items-center justify-between">
-                    <h2 className="text-white font-bold text-xl">Perfil del artista</h2>
-                    <button onClick={onClose} className="text-white/50 hover:text-white transition">
-                        <X size={22} />
+                <div className="sticky top-0 z-20 bg-surface-container-highest/90 backdrop-blur-md border-b border-outline-variant/30 px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-on-surface font-headline text-2xl uppercase tracking-widest">PERFIL DEL ARTISTA</h2>
+                    <button onClick={onClose} className="text-outline hover:text-error transition-colors">
+                        <X size={28} strokeWidth={2} />
                     </button>
                 </div>
 
@@ -164,71 +153,74 @@ export default function ModalDetalleEquipo({ trabajadorId, onClose }: Props) {
                 ) : !trabajador ? (
                     <p className="text-red-400 text-center py-20">Trabajador no encontrado.</p>
                 ) : (
-                    <div className="p-6 space-y-8">
+                    <div className="p-6 md:p-8 space-y-12">
 
                         {/* ── Perfil ── */}
-                        <div className="flex flex-col sm:flex-row gap-6">
-                            <div className="w-36 h-36 rounded-2xl bg-[#9CA3AF] overflow-hidden shrink-0 border border-white/10">
+                        <div className="flex flex-col sm:flex-row gap-8 bg-surface-container/50 border border-outline-variant/20 p-6 md:p-8 rounded-sm">
+                            <div className="w-40 h-40 border border-outline-variant/30 bg-surface-container overflow-hidden shrink-0 relative group">
+                                <div className="absolute inset-0 bg-primary/20 mix-blend-overlay opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-500 pointer-events-none"></div>
                                 {imagen
-                                    ? <img src={imagen} alt={trabajador.nombre} className="w-full h-full object-cover" />
-                                    : <div className="w-full h-full flex items-center justify-center text-gray-700 font-black text-3xl">IMG</div>
+                                    ? <img src={imagen} alt={trabajador.nombre} className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500" />
+                                    : <div className="w-full h-full flex items-center justify-center text-outline-variant font-headline text-5xl tracking-widest opacity-30">IMG</div>
                                 }
                             </div>
 
                             <div className="flex-1">
                                 <div className="flex items-start justify-between gap-4 flex-wrap">
                                     <div>
-                                        <h3 className="text-2xl font-bold text-white">{nombreArtista}</h3>
-                                        <div className="flex items-center gap-2 mt-1">
+                                        <h3 className="text-4xl md:text-5xl font-headline text-primary uppercase tracking-tight">{nombreArtista}</h3>
+                                        <div className="flex items-center gap-2 mt-4 bg-surface-container-highest border border-outline-variant/30 px-3 py-1.5 inline-flex rounded-sm">
                                             <StarRating value={media} size={16} />
-                                            <span className="text-yellow-400 text-sm font-bold">
-                                                {media > 0 ? media.toFixed(1) : 'Sin valoraciones'}
+                                            <span className="text-on-surface font-label text-xs tracking-widest ml-2 leading-none mt-0.5">
+                                                {media > 0 ? media.toFixed(1) : 'Nuevo'}
                                             </span>
-                                            <span className="text-white/30 text-xs">({valoraciones.length})</span>
+                                            <span className="text-outline-variant font-body text-xs ml-1">({valoraciones.length})</span>
                                         </div>
                                     </div>
 
                                     {/* Botón pedir cita */}
-                                    {isLoggedIn ? (
-                                        <button
-                                            onClick={() => navigate('/cita')}
-                                            className="flex items-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition text-sm"
-                                        >
-                                            <Calendar size={16} /> Pedir cita
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={() => navigate('/login')}
-                                            className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition text-sm border border-white/10"
-                                        >
-                                            <Calendar size={16} /> Pedir cita (inicia sesión)
-                                        </button>
+                                    {!isTrabajadorOrAdmin && (
+                                        isLoggedIn ? (
+                                            <button
+                                                onClick={() => navigate('/cita')}
+                                                className="flex items-center gap-3 px-6 py-3 primary-gradient-cta hover:bg-primary-hover font-label text-xs tracking-[0.2em] uppercase rounded-sm transition-all"
+                                            >
+                                                <Calendar size={18} strokeWidth={2} /> PEDIR CITA
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => navigate('/login')}
+                                                className="flex items-center gap-3 px-6 py-3 bg-surface-container border border-outline-variant/30 hover:border-primary/50 text-on-surface font-label text-xs tracking-[0.2em] uppercase rounded-sm transition-all text-center"
+                                            >
+                                                <Calendar size={18} strokeWidth={2} /> PEDIR CITA (LOGIN)
+                                            </button>
+                                        )
                                     )}
                                 </div>
 
                                 {trabajador.descripcion && (
-                                    <p className="text-white/70 text-sm leading-relaxed mt-3 bg-[#323444] rounded-xl p-4">
+                                    <p className="text-on-surface-variant font-body text-sm leading-relaxed mt-6 bg-surface-container/30 border-l border-primary p-4 rounded-r-sm">
                                         {trabajador.descripcion}
                                     </p>
                                 )}
 
-                                <div className="flex flex-wrap gap-4 mt-3 text-sm">
+                                <div className="flex flex-wrap gap-4 mt-6 font-label text-xs uppercase tracking-widest text-outline-variant">
                                     {email && (
-                                        <a href={`mailto:${email}`} className="flex items-center gap-1.5 text-sky-400 hover:text-sky-300 transition">
-                                            <Mail size={14} /> {email}
+                                        <a href={`mailto:${email}`} className="flex items-center gap-2 text-white hover:text-primary transition-colors bg-surface-container-highest border border-outline-variant/30 px-3 py-1.5 rounded-sm">
+                                            <Mail size={16} strokeWidth={2} /> {email}
                                         </a>
                                     )}
                                     {telefono && (
-                                        <a href={`tel:${telefono}`} className="flex items-center gap-1.5 text-sky-400 hover:text-sky-300 transition">
-                                            <Phone size={14} /> {telefono}
+                                        <a href={`tel:${telefono}`} className="flex items-center gap-2 text-white hover:text-primary transition-colors bg-surface-container-highest border border-outline-variant/30 px-3 py-1.5 rounded-sm">
+                                            <Phone size={16} strokeWidth={2} /> {telefono}
                                         </a>
                                     )}
                                 </div>
 
                                 {trabajador.estilos && trabajador.estilos.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-3">
+                                    <div className="flex flex-wrap gap-2 mt-6">
                                         {trabajador.estilos.map(e => (
-                                            <span key={e.id} className="bg-sky-900/40 text-sky-300 text-xs font-bold px-3 py-1 rounded-full border border-sky-500/30">
+                                            <span key={e.id} className="bg-primary/10 text-primary font-label tracking-widest text-[10px] uppercase px-3 py-1.5 border border-primary/20 rounded-sm">
                                                 {e.nombre}
                                             </span>
                                         ))}
@@ -238,23 +230,25 @@ export default function ModalDetalleEquipo({ trabajadorId, onClose }: Props) {
                         </div>
 
                         {/* ── Trabajos ── */}
-                        <section>
-                            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-                                <h3 className="text-white font-bold text-lg">
-                                    Trabajos ({proyectosFiltrados.length})
+                        <section className="bg-surface-container/50 border border-outline-variant/20 p-6 md:p-8 rounded-sm">
+                            <div className="flex items-center justify-between gap-4 mb-8 flex-wrap border-b border-outline-variant/30 pb-4">
+                                <h3 className="text-on-surface font-headline text-3xl uppercase tracking-widest">
+                                    TRABAJOS ({proyectosFiltrados.length})
                                 </h3>
-                                <MultiSelect
-                                    placeholder="Ordenar / filtrar"
-                                    options={ORDEN_TRABAJOS_OPTS}
-                                    selected={ordenTrabajos}
-                                    onChange={setOrdenTrabajos}
-                                />
+                                <div className="w-full sm:w-64">
+                                    <MultiSelect
+                                        placeholder="ORDENAR / FILTRAR"
+                                        options={ORDEN_TRABAJOS_OPTS}
+                                        selected={ordenTrabajos}
+                                        onChange={setOrdenTrabajos}
+                                    />
+                                </div>
                             </div>
 
                             {proyectosFiltrados.length === 0 ? (
-                                <p className="text-white/40 text-sm text-center py-8">Sin trabajos para mostrar.</p>
+                                <p className="text-outline-variant font-label text-xs uppercase tracking-widest text-center py-12">No hay trabajos para mostrar.</p>
                             ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                                     {proyectosFiltrados.map(p => (
                                         <TarjetaMiniProyecto key={p.id} proyecto={p} />
                                     ))}
@@ -263,26 +257,26 @@ export default function ModalDetalleEquipo({ trabajadorId, onClose }: Props) {
                         </section>
 
                         {/* ── Valoraciones ── */}
-                        <section>
-                            <h3 className="text-white font-bold text-lg flex items-center gap-2 mb-4">
-                                <Star className="fill-yellow-400 text-yellow-400" size={18} />
-                                Valoraciones del artista
+                        <section className="bg-surface-container/50 border border-outline-variant/20 p-6 md:p-8 rounded-sm">
+                            <h3 className="text-on-surface font-headline text-3xl uppercase tracking-widest flex items-center gap-3 mb-8 border-b border-outline-variant/30 pb-4">
+                                <Star className="fill-tertiary text-tertiary" size={24} strokeWidth={2} />
+                                VALORACIONES
                             </h3>
 
-                            <div className="mb-6">
+                            <div className="mb-12">
                                 {!isLoggedIn ? (
-                                    <div className="bg-[#1C1B28] border border-white/10 rounded-2xl p-5 text-center">
-                                        <p className="text-white/60 mb-3 text-sm">Inicia sesión para dejar tu valoración.</p>
+                                    <div className="bg-surface-container-highest border border-outline-variant/30 p-8 text-center rounded-sm">
+                                        <p className="text-on-surface-variant font-body mb-6 text-sm">Inicia sesión para dejar tu valoración.</p>
                                         <button
                                             onClick={() => navigate('/login')}
-                                            className="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-sm transition"
+                                            className="px-8 py-3 bg-surface-container hover:bg-surface-container-high border border-outline hover:border-primary text-on-surface font-label tracking-[0.2em] text-xs uppercase rounded-sm transition-colors mx-auto block"
                                         >
-                                            Iniciar sesión
+                                            INICIAR SESIÓN
                                         </button>
                                     </div>
                                 ) : yaValoró ? (
-                                    <div className="bg-sky-900/20 border border-sky-500/30 rounded-2xl p-5 text-center text-sky-300 font-semibold text-sm">
-                                        ✅ Ya has valorado a este artista.
+                                    <div className="bg-secondary-container/20 border border-secondary/30 rounded-sm p-5 text-center text-secondary font-label tracking-[0.1em] text-xs uppercase">
+                                        Ya has valorado a este artista.
                                     </div>
                                 ) : (
                                     <FormularioValoracion
@@ -292,7 +286,12 @@ export default function ModalDetalleEquipo({ trabajadorId, onClose }: Props) {
                                 )}
                             </div>
 
-                            <ListaComentarios valoraciones={valoraciones} />
+                            <ListaComentarios
+                                valoraciones={valoraciones}
+                                valoracionApiSegment="valoracion_trabajadors"
+                                currentUserId={currentUserId}
+                                onValoracionCambiada={recargarValoraciones}
+                            />
                         </section>
 
                     </div>
