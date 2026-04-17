@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y \
 # Instalamos las extensiones de PHP requeridas por Symfony y la BD
 RUN docker-php-ext-install pdo pdo_mysql intl zip
 
+#habilitamos mpm_prefork
+RUN a2dismod mpm_event && a2enmod mpm_prefork
+
 # Habilitamos el módulo rewrite de Apache (súper importante para que funcionen las rutas de Symfony)
 RUN a2enmod rewrite
 
