@@ -12,7 +12,10 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-install pdo pdo_mysql intl zip
 
 # Aseguramos que solo haya un MPM cargado (evita "More than one MPM loaded")
-RUN a2dismod mpm_event || true; a2dismod mpm_worker || true; a2dismod mpm_prefork || true; a2enmod mpm_prefork
+# En algunos entornos quedan enlaces duplicados en mods-enabled.
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.load /etc/apache2/mods-enabled/mpm_worker.load /etc/apache2/mods-enabled/mpm_prefork.load && \
+    rm -f /etc/apache2/mods-enabled/mpm_event.conf /etc/apache2/mods-enabled/mpm_worker.conf /etc/apache2/mods-enabled/mpm_prefork.conf && \
+    a2enmod mpm_prefork
 
 # Habilitamos el módulo rewrite de Apache (súper importante para que funcionen las rutas de Symfony)
 RUN a2enmod rewrite
