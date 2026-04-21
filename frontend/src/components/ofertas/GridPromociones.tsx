@@ -25,7 +25,8 @@ export default function GridPromociones({ items, puedeEditar, onEliminar }: Prop
             {items.map(item => {
                 const esServicio = item.tipo === 'servicio' || item.tipo === 'plantilla';
                 const sinStock = (item.stock ?? 0) <= 0;
-                const mostrarAgotado = sinStock && (item.esPack || item.tipo === 'producto');
+                const bloqueoPorStock = sinStock && (item.esPack || item.tipo === 'producto');
+                const mostrarAgotado = bloqueoPorStock;
 
                 return (
                 <div key={item.idUnico} className="glass-panel flex flex-col group hover:-translate-y-1 transition-all duration-300 relative">
@@ -119,24 +120,23 @@ export default function GridPromociones({ items, puedeEditar, onEliminar }: Prop
                                         return (
                                             <button
                                                 onClick={() => {
-                                                    if (sinStock) return;
                                                     const payload = {
                                                         trabajadorId: item.autorId,
                                                         ...(item.esPack ? { packId: item.dbId } : { proyectoId: item.dbId })
                                                     };
                                                     navigate('/cita', { state: payload });
                                                 }}
-                                                disabled={sinStock}
+                                                disabled={bloqueoPorStock}
                                                 className={`w-full py-3 font-label text-xs tracking-[0.2em] uppercase rounded-sm transition-all flex items-center justify-center gap-2 ${
-                                                    sinStock
+                                                    bloqueoPorStock
                                                         ? 'bg-error/20 text-error border border-error/40 cursor-not-allowed'
                                                         : 'bg-secondary-container/20 hover:bg-secondary-container/40 border border-secondary/30 text-secondary'
                                                 }`}
                                             >
                                                 <span className="material-symbols-outlined text-[16px]">
-                                                    {sinStock ? 'remove_shopping_cart' : 'calendar_add_on'}
+                                                    {bloqueoPorStock ? 'remove_shopping_cart' : 'calendar_add_on'}
                                                 </span>
-                                                {sinStock ? 'No hay stock' : 'Reservar Cita'}
+                                                {bloqueoPorStock ? 'No hay stock' : 'Reservar Cita'}
                                             </button>
                                         );
                                     }
