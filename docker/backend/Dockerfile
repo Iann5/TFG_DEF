@@ -30,3 +30,22 @@ COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
 # Establecemos el directorio de trabajo
 WORKDIR /var/www/symfony
+
+# Copiamos primero los manifiestos de Composer para aprovechar caché de capas
+COPY backend/composer.json backend/composer.lock ./
+
+# Instalamos dependencias de PHP para producción
+RUN composer install \
+    --no-dev \
+    --prefer-dist \
+    --no-interaction \
+    --optimize-autoloader \
+    --no-scripts
+
+# Copiamos el código de Symfony
+COPY backend/ ./
+
+# Permisos mínimos para runtime de Symfony
+RUN mkdir -p var/cache var/log && chown -R www-data:www-data var
+
+EXPOSE 80
