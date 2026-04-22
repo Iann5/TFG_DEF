@@ -20,12 +20,12 @@ RUN composer install \
     --no-dev \
     --prefer-dist \
     --no-interaction \
-    --optimize-autoloader \
+    --no-autoloader \
     --no-scripts
 
 # Código de la app
 COPY backend/ ./
-RUN mkdir -p var/cache var/log
+RUN mkdir -p var/cache var/log && composer dump-autoload --optimize
 
 EXPOSE 8080
 
