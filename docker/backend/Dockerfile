@@ -1,4 +1,4 @@
-FROM php:8.2-cli
+FROM php:8.2-apache
 
 # Dependencias del sistema y extensiones necesarias para Symfony + MySQL
 RUN apt-get update && apt-get install -y \
@@ -8,6 +8,18 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     && rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-install pdo pdo_mysql intl zip
+
+# Habilitar mod_rewrite para Symfony
+RUN a2enmod rewrite
+
+# Configurar DocumentRoot a la carpeta public de Symfony
+ENV APACHE_DOCUMENT_ROOT /var/www/symfony/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# Configurar Apache para que escuche en el puerto que Railway inyecta
+RUN sed -i 's/80/${PORT:-8080}/g' /etc/apache2/ports.conf
+RUN sed -i 's/:80/:${PORT:-8080}/g' /etc/apache2/sites-available/*.conf
 
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
@@ -27,7 +39,9 @@ RUN composer install \
 COPY backend/ ./
 RUN mkdir -p var/cache var/log && composer dump-autoload --optimize
 
+# Permisos para Apache
+RUN chown -R www-data:www-data /var/www/symfony/var
+
 EXPOSE 8080
 
-# Evita Apache/MPM: servidor embebido PHP para Railway
-CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-8080} -t public public/index.php"]
+CMD ["apache2-foreground"]
