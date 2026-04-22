@@ -36,10 +36,27 @@ RUN composer install \
 
 # Código de la app
 COPY backend/ ./
-RUN mkdir -p var/cache var/log && composer dump-autoload --optimize
+
+# Entorno de producción
+ENV APP_ENV=prod
+ENV APP_SECRET=a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
+
+# Generar claves JWT si no existen (las del repo se copian con COPY backend/)
+RUN mkdir -p config/jwt && \
+    if [ ! -f config/jwt/private.pem ]; then \
+        openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096 -pass pass:b59c885b5f7b5dad0c9c1363ea04742b3cd8f7b95a5aec4899c5565b79c3ce6a; \
+        openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout -passin pass:b59c885b5f7b5dad0c9c1363ea04742b3cd8f7b95a5aec4899c5565b79c3ce6a; \
+    fi && \
+    chmod 644 config/jwt/private.pem config/jwt/public.pem
+
+# Autoload optimizado + cache de producción
+RUN mkdir -p var/cache var/log && \
+    composer dump-autoload --optimize --classmap-authoritative && \
+    php bin/console cache:clear --env=prod --no-warmup && \
+    php bin/console cache:warmup --env=prod
 
 # Permisos para Apache
-RUN chown -R www-data:www-data /var/www/symfony/var
+RUN chown -R www-data:www-data /var/www/symfony/var /var/www/symfony/config/jwt
 
 # Script de inicio para configurar el puerto dinámico de Railway
 RUN echo '#!/bin/bash\n\
