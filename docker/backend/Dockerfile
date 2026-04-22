@@ -45,6 +45,8 @@ RUN echo '#!/bin/bash\n\
 PORT=${PORT:-8080}\n\
 sed -i "s/80/$PORT/g" /etc/apache2/ports.conf\n\
 sed -i "s/:80/:$PORT/g" /etc/apache2/sites-available/*.conf\n\
+a2dismod mpm_event mpm_worker || true\n\
+a2enmod mpm_prefork || true\n\
 exec apache2-foreground' > /start.sh && chmod +x /start.sh
 
 EXPOSE 8080
