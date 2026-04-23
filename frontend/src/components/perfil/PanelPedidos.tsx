@@ -1,18 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { type Pedido } from '../../types/pedido';
 
-interface Pedido {
-    id: number;
-    total: number;
-    fecha_compra: string;
-    estado: string;
-    metodo_pago: string;
-    direccion: string;
-    localidad: string;
-    provincia: string;
-    cp: string;
-    pais: string;
-}
 
 interface Props {
     userId: number | null;
@@ -149,6 +138,41 @@ export default function PanelPedidos({ userId }: Props) {
                                         </span>
                                     </div>
                                 </div>
+                                
+                                {/* Lista de Productos */}
+                                {pedido.lineaPedidos && pedido.lineaPedidos.length > 0 && (
+                                    <div className="mt-3 border-t border-outline-variant/20 pt-3">
+                                        <span className="font-label text-[10px] uppercase tracking-widest text-[#8c909f] mb-2 block">
+                                            Artículos ({pedido.lineaPedidos.length})
+                                        </span>
+                                        <div className="flex flex-wrap gap-3">
+                                            {pedido.lineaPedidos.map((linea, idx) => (
+                                                <div key={idx} className="flex items-center gap-2 bg-surface-container/50 pr-3 rounded-sm border border-outline-variant/10 overflow-hidden">
+                                                    <div className="w-10 h-10 bg-surface-container-highest shrink-0 relative overflow-hidden">
+                                                        {linea.producto?.imagen ? (
+                                                            <img 
+                                                                src={linea.producto.imagen} 
+                                                                alt={linea.producto.nombre} 
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                                            />
+                                                        ) : (
+                                                            <span className="material-symbols-outlined absolute inset-0 m-auto text-outline/50 flex items-center justify-center text-[16px]">image</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-col py-1">
+                                                        <span className="text-[10px] font-label font-bold uppercase truncate max-w-[100px] text-on-surface" title={linea.producto?.nombre}>
+                                                            {linea.producto?.nombre || 'Producto'}
+                                                        </span>
+                                                        <span className="text-[9px] font-label text-outline uppercase tracking-widest">
+                                                            {linea.cantidad}x — {linea.precio.toFixed(2)}€
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}

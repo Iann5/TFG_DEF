@@ -1,114 +1,16 @@
-import { useState, type FormEvent, type ChangeEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { isAxiosError } from "axios";
-import api from "../services/api";
-import { getUserPhotoKey, decodeToken } from "../utils/authUtils";
+import { useRegistro } from "../hooks/useRegistro";
 
 export default function RegisterPage() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-
-  // Ajustado para coincidir con User.php: usamos 'cp' en lugar de 'codigoPostal'
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    nombre: '',
-    apellidos: '',
-    dni: '',
-    telefono: '',
-    pais: '',
-    direccion: '',
-    provincia: '',
-    localidad: '',
-    cp: ''
-  });
-
-  const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
-
-  // Función para procesar la imagen a Base64
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const reader = new FileReader();
-      reader.readAsDataURL(e.target.files[0]);
-      reader.onload = () => setFotoPerfil(reader.result as string);
-    }
-  };
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    try {
-      // 1. ANTES DE NADA: Limpiamos lo que hubiera de otros usuarios
-      // Así el navegador está "vacío" para el nuevo usuario
-      localStorage.removeItem('token');
-      localStorage.removeItem('userPhoto');
-
-      // Preparamos el objeto final con los campos obligatorios del Backend
-      const payload = {
-        ...formData,
-        roles: ["ROLE_USER"], // Requerido por Symfony
-        fecha_registro: new Date().toISOString(), // Obligatorio en tu entidad
-        foto_perfil: fotoPerfil // Campo opcional en tu entidad
-      };
-
-      const response = await api.post('/users', payload, {
-        headers: { 'Content-Type': 'application/ld+json' }
-      });
-
-      // GUARDAMOS LA FOTO CON CLAVE ESPECÍFICA DEL USUARIO
-      if (fotoPerfil && response.data.token) {
-        // Si la API devuelve un token al registrar, lo usamos para obtener la clave
-        localStorage.setItem('token', response.data.token);
-        const photoKey = getUserPhotoKey();
-        if (photoKey) {
-          localStorage.setItem(photoKey, fotoPerfil);
-        }
-      } else if (fotoPerfil) {
-        // Si no hay token aún, guardamos con el email como clave temporal
-        // que coincide con lo que getUserPhotoKey generará tras el login
-        const tempKey = `userPhoto_${formData.email}`;
-        localStorage.setItem(tempKey, fotoPerfil);
-      }
-
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        const payload = decodeToken(response.data.token);
-        console.log('Token payload en registro:', payload); // Para debug
-      }
-
-      // Avisamos al resto de la aplicación del cambio
-      window.dispatchEvent(new Event("storage"));
-
-      navigate('/login');
-
-    } catch (err) {
-      if (isAxiosError(err)) {
-        // Extraemos el error descriptivo de Hydra para debugear el Error 500
-        const detail = err.response?.data['hydra:description'] || err.response?.data['detail'];
-
-        if (err.response?.status === 422) {
-          setError('Ya existe un usuario con ese email o DNI.');
-        } else {
-          setError(`Fallo del servidor: ${detail || 'Revisa que los campos coincidan con el Backend'}`);
-        }
-      } else {
-        setError('Error de conexión.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    navigate,
+    loading,
+    error,
+    showPassword,
+    setShowPassword,
+    handleFileChange,
+    handleChange,
+    handleSubmit
+  } = useRegistro();
 
   return (
     <div className="flex min-h-[100dvh] items-center justify-center px-4 py-20 bg-background bg-halftone relative">

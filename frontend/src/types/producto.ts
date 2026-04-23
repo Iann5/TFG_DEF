@@ -22,3 +22,32 @@ export interface ProductoRaw {
         }
     }
 }
+
+// Interfaz para manejar la respuesta de API Platform (Hydra)
+export interface HydraResponse<T> {
+    'hydra:member'?: T[];
+    member?: T[];
+}
+
+export interface ProductoPayload {
+    nombre: string;
+    descripcion: string;
+    precio_original: number;
+    precio_oferta: number | null;
+    stock: number;
+    imagen?: string | null;
+    fecha_subida?: string;
+    creador?: string;
+}
+
+// Versión simplificada para formularios de edición
+export interface ProductoForm {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    precio_original: number;
+    precio_oferta: number | null;
+    stock: number;
+    imagen?: string;
+    fecha_subida?: string;
+}

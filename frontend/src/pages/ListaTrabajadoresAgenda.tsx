@@ -3,16 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-
-interface TrabajadorResumen {
-  id: number;
-  usuario: {
-    nombre: string;
-    apellidos: string;
-    foto_perfil: string | null;
-    roles?: string[];
-  };
-}
+import { type TrabajadorResumen } from '../types/trabajador';
 
 export default function ListaTrabajadoresAgenda() {
   const navigate = useNavigate();

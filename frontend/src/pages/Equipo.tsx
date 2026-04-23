@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import TarjetaEquipo from '../components/TarjetaEquipo';
 import ModalDetalleEquipo from '../components/ModalDetalleEquipo';
 import MultiSelect from '../components/MultiSelect';
-import { type Trabajador } from '../types/trabajador';
+import { type TrabajadorConMedia } from '../types/trabajador';
 
 // ─── Página Equipo ─────────────────────────────────────────────────────────────
 
@@ -16,10 +16,6 @@ const ORDEN_OPTS = [
     { value: 'val_desc', label: 'MAYOR VALORACIÓN' },
     { value: 'val_asc', label: 'MENOR VALORACIÓN' },
 ];
-
-interface TrabajadorConMedia extends Trabajador {
-    mediaValoracion?: number;
-}
 
 const Equipo: React.FC = () => {
     const [trabajadores, setTrabajadores] = useState<TrabajadorConMedia[]>([]);

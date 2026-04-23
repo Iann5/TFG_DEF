@@ -94,3 +94,32 @@ export interface DetalleRaw {
   valoracionProyectos?: RawValoracion[];
 }
 
+// Tipo para el selector de estilos en formularios
+export interface Estilo {
+    id: number;
+    nombre: string;
+}
+
+// Tipo para la API del formulario AddTatuaje
+export interface ProyectoAPI {
+    id: number;
+    nombre?: string;
+    tipo?: 'Tatuaje' | 'Plantilla';
+    estilo?: string | { id: number };
+    precio_original?: number;
+    precio_oferta?: number | null;
+    descripcion?: string | null;
+    imagen?: string;
+}
+
+// Payload para crear/editar proyectos
+export interface ProyectoPayload {
+    nombre: string;
+    tipo: string;
+    estilo: string;
+    precio_original: number;
+    precio_oferta: number | null;
+    descripcion?: string | null;
+    imagen?: string;
+    fecha_subida?: string;
+}
