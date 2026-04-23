@@ -136,13 +136,13 @@ export default function RegisterPage() {
               <h3 className="font-label text-xs tracking-widest text-primary border-b border-outline-variant/30 pb-2 uppercase mb-4">Datos de Acceso</h3>
               <input
                 type="email" name="email" placeholder="CORREO ELECTRÓNICO" required
-                className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase"
+                className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm"
                 onChange={handleChange}
               />
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'} name="password" placeholder="CONTRASEÑA" required
-                  className="w-full p-3 pr-12 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase"
+                  className="w-full p-3 pr-12 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm"
                   onChange={handleChange}
                 />
                 <button
@@ -163,23 +163,23 @@ export default function RegisterPage() {
               <h3 className="font-label text-xs tracking-widest text-primary border-b border-outline-variant/30 pb-2 uppercase mb-4">Datos Personales</h3>
               <input
                 type="text" name="nombre" placeholder="NOMBRE" required
-                className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase"
+                className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm"
                 onChange={handleChange}
               />
               <input
                 type="text" name="apellidos" placeholder="APELLIDOS" required
-                className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase"
+                className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm"
                 onChange={handleChange}
               />
               <div className="grid grid-cols-2 gap-4">
                 <input
                   type="text" name="dni" placeholder="DNI" required
-                  className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase"
+                  className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm"
                   onChange={handleChange}
                 />
                 <input
                   type="tel" name="telefono" placeholder="TELÉFONO" required
-                  className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase"
+                  className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm"
                   onChange={handleChange}
                 />
               </div>
@@ -190,17 +190,17 @@ export default function RegisterPage() {
               <h3 className="font-label text-xs tracking-widest text-primary border-b border-outline-variant/30 pb-2 uppercase mb-4">Dirección</h3>
               <input
                 type="text" name="direccion" placeholder="DIRECCIÓN COMPLETA" required
-                className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase"
+                className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm"
                 onChange={handleChange}
               />
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <input type="text" name="pais" placeholder="PAÍS" required className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase" onChange={handleChange} />
-                <input type="text" name="provincia" placeholder="PROVINCIA" required className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase" onChange={handleChange} />
-                <input type="text" name="localidad" placeholder="LOCALIDAD" required className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase" onChange={handleChange} />
+                <input type="text" name="pais" placeholder="PAÍS" required className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm" onChange={handleChange} />
+                <input type="text" name="provincia" placeholder="PROVINCIA" required className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm" onChange={handleChange} />
+                <input type="text" name="localidad" placeholder="LOCALIDAD" required className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm" onChange={handleChange} />
                 <input
                   type="text" name="cp" placeholder="C.P." required
-                  className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm uppercase"
+                  className="w-full p-3 bg-surface-container-highest border border-outline-variant/30 text-on-surface font-body rounded-sm placeholder-outline/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all text-sm"
                   onChange={handleChange}
                 />
               </div>
