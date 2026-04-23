@@ -11,6 +11,7 @@ import EditarPanel from '../components/perfil/EditarPanel';
 import PanelUsuario from '../components/perfil/PanelUsuario';
 import PanelTrabajador from '../components/perfil/PanelTrabajador';
 import PanelAdmin from '../components/perfil/PanelAdmin';
+import PanelPedidos from '../components/perfil/PanelPedidos';
 import ModalCambio from '../components/perfil/ModalCambio';
 
 type ModalType = 'email' | 'telefono' | 'password' | null;
@@ -141,6 +142,11 @@ export default function Perfil() {
                                 onEliminar={() => setConfirmDelete(true)}
                             />
                         </div>
+                    </div>
+
+                    {/* Panel Inferior: Pedidos (visible para todos los roles) */}
+                    <div className="mt-8 bg-surface-container/60 backdrop-blur-xl border border-outline-variant/30 rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-8">
+                        <PanelPedidos userId={userData?.id ?? null} />
                     </div>
                 </div>
 
