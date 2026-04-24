@@ -86,9 +86,35 @@ export function useHistorial() {
     }, [usuarios, filtroRol, busquedaUsuario]);
 
     const pedidosMostrados = useMemo(() => {
-        if (!usuarioSeleccionado?.id) return pedidos;
-        return pedidos.filter(p => getPedidoUsuarioId(p) === usuarioSeleccionado.id);
-    }, [pedidos, usuarioSeleccionado]);
+        let filtrados = pedidos;
+
+        if (usuarioSeleccionado?.id) {
+            filtrados = filtrados.filter(p => getPedidoUsuarioId(p) === usuarioSeleccionado.id);
+        } else {
+            if (filtroRol !== 'TODOS' || busquedaUsuario.trim() !== '') {
+                const texto = busquedaUsuario.trim().toLowerCase();
+                
+                filtrados = filtrados.filter(p => {
+                    const userId = getPedidoUsuarioId(p);
+                    const user = userId ? usuarios.find(u => u.id === userId) : null;
+                    
+                    const roleMatch = filtroRol === 'TODOS' ? true : getTipoRol(user?.roles || []) === filtroRol;
+                    
+                    let searchMatch = true;
+                    if (texto.length > 0) {
+                        const nombreCompleto = user 
+                            ? `${user.nombre || ''} ${user.apellidos || ''}`.trim().toLowerCase()
+                            : getPedidoUsuarioNombre(p).toLowerCase();
+                        searchMatch = nombreCompleto.includes(texto);
+                    }
+                    
+                    return roleMatch && searchMatch;
+                });
+            }
+        }
+
+        return filtrados;
+    }, [pedidos, usuarioSeleccionado, filtroRol, busquedaUsuario, usuarios]);
 
     return {
         loading,

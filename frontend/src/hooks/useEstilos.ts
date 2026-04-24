@@ -37,7 +37,14 @@ export function useEstilos() {
   const cargarTrabajadores = async () => {
     try {
       const response = await api.get<TrabajadorBasico[]>('/trabajadors');
-      if (Array.isArray(response.data)) setTrabajadores1(response.data);
+      if (Array.isArray(response.data)) {
+        const trabajadoresActivos = response.data.filter((trabajador) => {
+          const roles = trabajador.usuario?.roles ?? [];
+          if (roles.length === 0) return true;
+          return roles.includes('ROLE_TRABAJADOR') || roles.includes('ROLE_ADMIN');
+        });
+        setTrabajadores1(trabajadoresActivos);
+      }
     } catch (err) {
       if (err instanceof AxiosError) {
         setError(`Error ${err.response?.status}: No se pudo obtener los trabajadores.`);

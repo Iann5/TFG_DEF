@@ -13,7 +13,7 @@ export interface Trabajador {
 
 export interface TrabajadorBasico {
   id: number;
-  usuario?: { nombre?: string; apellidos?: string };
+  usuario?: { nombre?: string; apellidos?: string; roles?: string[] };
   nombre?: string;
 }
 
@@ -41,4 +41,4 @@ export interface TrabajadorResumen {
 // Extensión para la vista de Equipo con valoración media
 export interface TrabajadorConMedia extends Trabajador {
     mediaValoracion?: number;
-}
+}

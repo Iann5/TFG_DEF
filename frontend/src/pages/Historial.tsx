@@ -24,8 +24,8 @@ export default function Historial() {
     if (loading) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-               <span className="material-symbols-outlined text-primary text-5xl animate-spin mb-4">refresh</span>
-               <p className="font-label text-xs uppercase tracking-[0.2em] text-outline">Revisando archivos...</p>
+                <span className="material-symbols-outlined text-primary text-5xl animate-spin mb-4">refresh</span>
+                <p className="font-label text-xs uppercase tracking-[0.2em] text-outline">Revisando archivos...</p>
             </div>
         );
     }
@@ -42,7 +42,7 @@ export default function Historial() {
                     {/* Header */}
                     <div className="mb-16 flex items-end gap-6 border-b border-outline-variant/20 pb-8">
                         <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-                           <span className="material-symbols-outlined text-primary text-3xl">shopping_bag</span>
+                            <span className="material-symbols-outlined text-primary text-3xl">shopping_bag</span>
                         </div>
                         <div>
                             <span className="font-label text-primary text-[10px] uppercase tracking-[0.3em] block mb-2">Administración</span>
@@ -96,55 +96,7 @@ export default function Historial() {
                             </div>
                         </div>
 
-                        <div className="overflow-x-auto border border-outline-variant/20 rounded-sm">
-                            <table className="w-full min-w-[680px]">
-                                <thead className="bg-surface-container-highest/50 border-b border-outline-variant/20">
-                                    <tr>
-                                        <th className="text-left p-3 font-label text-[10px] uppercase tracking-[0.2em] text-outline">ID</th>
-                                        <th className="text-left p-3 font-label text-[10px] uppercase tracking-[0.2em] text-outline">Nombre completo</th>
-                                        <th className="text-left p-3 font-label text-[10px] uppercase tracking-[0.2em] text-outline">Rol</th>
-                                        <th className="text-right p-3 font-label text-[10px] uppercase tracking-[0.2em] text-outline">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {usuariosFiltrados.map(user => {
-                                        const tipoRol = getTipoRol(user.roles || []);
-                                        const nombreCompleto = `${user.nombre || ''} ${user.apellidos || ''}`.trim() || 'Sin nombre';
-                                        const isSelected = usuarioSeleccionado?.id === user.id;
-                                        return (
-                                            <tr key={user.id} className="border-b border-outline-variant/10 last:border-b-0">
-                                                <td className="p-3 font-body text-sm text-on-surface">#{user.id}</td>
-                                                <td className="p-3 font-body text-sm text-on-surface">{nombreCompleto}</td>
-                                                <td className="p-3">
-                                                    <span className="px-2 py-1 border border-outline-variant/30 rounded-sm font-label text-[10px] uppercase tracking-widest text-on-surface-variant">
-                                                        {tipoRol === 'USUARIO' ? 'Usuario' : tipoRol === 'TRABAJADOR' ? 'Trabajador' : 'Administrador'}
-                                                    </span>
-                                                </td>
-                                                <td className="p-3 text-right">
-                                                    <button
-                                                        onClick={() => setUsuarioSeleccionado(user)}
-                                                        className={`px-3 py-2 rounded-sm font-label text-[10px] uppercase tracking-[0.2em] border transition-colors ${
-                                                            isSelected
-                                                                ? 'bg-primary/10 text-primary border-primary/40'
-                                                                : 'bg-transparent text-on-surface border-outline-variant/30 hover:text-primary hover:border-primary/50'
-                                                        }`}
-                                                    >
-                                                        Ver historial
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                    {usuariosFiltrados.length === 0 && (
-                                        <tr>
-                                            <td colSpan={4} className="p-6 text-center font-body text-sm text-outline-variant">
-                                                No hay usuarios que coincidan con el filtro seleccionado.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+
                     </div>
 
                     {usuarioSeleccionado && (
@@ -178,12 +130,12 @@ export default function Historial() {
 
                                 return (
                                     <div key={pedido.id} className={`glass-panel overflow-hidden transition-all duration-300 ${isExpanded ? 'border-primary/50' : 'border-outline-variant/30'}`}>
-                                        <div 
+                                        <div
                                             onClick={() => toggleExpand(pedido.id)}
                                             className="p-6 md:p-8 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-surface-container-highest transition-colors relative"
                                         >
                                             {isExpanded && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>}
-                                            
+
                                             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                                                 <div>
                                                     <p className="font-label text-[10px] uppercase tracking-widest text-outline mb-1">ID Pedido</p>
@@ -208,12 +160,12 @@ export default function Historial() {
                                                     <p className="font-headline font-bold text-xl text-primary">{pedido.total.toFixed(2)} €</p>
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="flex items-center gap-6 shrink-0 mt-4 md:mt-0 lg:ml-8 border-t md:border-t-0 md:border-l border-outline-variant/20 pt-4 md:pt-0 md:pl-6">
                                                 <span className={`px-3 py-1 font-label text-[10px] uppercase tracking-widest rounded-sm border 
-                                                    ${pedido.estado.toLowerCase() === 'entregado' ? 'bg-primary/10 text-primary border-primary/30' : 
-                                                      pedido.estado.toLowerCase() === 'cancelado' ? 'bg-error/10 text-error border-error/30' : 
-                                                      'bg-surface-container-highest text-on-surface border-outline-variant/30'}`}>
+                                                    ${pedido.estado.toLowerCase() === 'entregado' ? 'bg-primary/10 text-primary border-primary/30' :
+                                                        pedido.estado.toLowerCase() === 'cancelado' ? 'bg-error/10 text-error border-error/30' :
+                                                            'bg-surface-container-highest text-on-surface border-outline-variant/30'}`}>
                                                     {pedido.estado}
                                                 </span>
                                                 <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors ${isExpanded ? 'border-primary text-primary bg-primary/10' : 'border-outline-variant/30 text-outline hover:border-primary hover:text-primary'}`}>
@@ -228,14 +180,14 @@ export default function Historial() {
                                         <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
                                             <div className="p-6 md:p-8 bg-surface-container/50 border-t border-outline-variant/20 grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
                                                 <div className="absolute inset-0 bg-gradient-to-b from-surface-container-highest/20 to-transparent pointer-events-none"></div>
-                                                
+
                                                 {/* Productos comprados */}
                                                 <div className="lg:col-span-2 relative z-10">
                                                     <h4 className="font-label text-xs tracking-[0.2em] uppercase text-outline mb-6 pb-2 border-b border-outline-variant/20 flex items-center gap-2">
                                                         <span className="material-symbols-outlined text-[16px] text-primary">inventory_2</span>
                                                         Artículos ({pedido.lineaPedidos?.length || 0})
                                                     </h4>
-                                                    
+
                                                     <div className="space-y-3">
                                                         {pedido.lineaPedidos && pedido.lineaPedidos.map(linea => (
                                                             <div key={linea.id} className="flex gap-4 p-4 bg-surface-container border border-outline-variant/30 rounded-sm items-center hover:border-primary/50 transition-colors">
@@ -258,7 +210,7 @@ export default function Historial() {
                                                             </div>
                                                         ))}
                                                     </div>
-                                                    
+
                                                     <div className="flex justify-end mt-6 pt-4 border-t border-outline-variant/20">
                                                         <div className="flex items-center gap-6">
                                                             <span className="font-label text-[10px] uppercase tracking-widest text-outline">Total Abonado</span>
