@@ -16,8 +16,6 @@ export default function Historial() {
         toggleExpand,
         getPedidoUsuarioNombre,
         getPedidoUsuarioEmail,
-        getTipoRol,
-        usuariosFiltrados,
         pedidosMostrados
     } = useHistorial();
 
