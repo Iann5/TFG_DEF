@@ -2,18 +2,22 @@
 
 ## 1. Resumen del Proyecto
 
-**Tattoo Paradise** es una aplicación web full-stack para la gestión integral de un estudio de tatuajes. Permite a los clientes explorar el portafolio de diseños, reservar citas online, comprar merchandising y valorar los trabajos realizados. Los tatuadores gestionan su agenda, proyectos y productos, mientras que el administrador controla roles, historial de pedidos y todo el estudio.
+**Tattoo Paradise** es una aplicación web full-stack para la gestión de un estudio de tatuajes. Permite a los clientes explorar investigar los diseños disponibles, reservar citas, comprar productos y packs y valorar los diseños, productos, packs y trabjadores. Los tatuadores gestionan su agenda, proyectos, productos, estilos y packs, mientras que el administrador controla lo mismo que los trabajadores pero controla dos cosas más: la gestión de roles, historial de pedidos y las agendas de todos los trabajadores.
 
 **URL de producción:** `https://tfg-tattoos.vercel.app`
+
 **Repositorio Git:** `https://github.com/Iann5/TFG_DEF`
+
+**Autor:** `Ian Álvarez Triviño`
+
+>*Este proyecto incluye el archivo **Documentation.md** en su raíz con toda la documentación del TFG.*
 
 ---
 
-## 1.1 Cobertura de Requisitos de Entrega
+## 1.1 Índice
 
-Resumen de todos los puntos para la defensa.
 
-| Requisitos | Apartado documentación |
+| Pautas TFG | Apartado documentación |
 |---|---|
 | Tecnologías usadas / utilizadas | `2. Tecnologías Utilizadas` |
 | Resumen para qué sirve |  `1. Resumen del Proyecto` |
@@ -29,35 +33,35 @@ Resumen de todos los puntos para la defensa.
 ## 2. Tecnologías Utilizadas
 
 ### Frontend
-| Tecnología | Propósito |
-|---|---|
-| React | Biblioteca principal de UI |
-| TypeScript | Tipado estático |
-| Vite | Bundler y servidor de desarrollo |
-| React Router DOM | Enrutamiento SPA |
-| Tailwind CSS | Framework de estilos utilitarios |
-| Axios | Cliente HTTP para la API |
-| Lucide React | Iconografía |
-| Sonner | Notificaciones toast |
-| jsPDF | Generación de PDFs (consentimiento) |
-| react-signature-canvas | Firma digital del cliente |
+| Tecnologías |
+|---|
+| React |
+| TypeScript |
+| Vite |
+| React Router DOM |
+| Tailwind CSS |
+| Axios |
+| Lucide React |
+| Sonner |
+| jsPDF --> Genera PDFs |
+| react-signature-canvas --> Para la firma digital |
 
 ### Backend
-| Tecnología | Propósito |
-|---|---|
-| PHP | Lenguaje del servidor |
-| Symfony | Framework backend |
-| API Platform | Generación automática de API REST/JSON-LD |
-| Doctrine ORM | Mapeo objeto-relacional |
-| LexikJWT | Autenticación con JSON Web Tokens |
-| NelmioCorsBundle | Gestión de CORS |
+| Tecnología |
+|---|
+| PHP |
+| Symfony |
+| API Platform |
+| Doctrine ORM |
+| LexikJWT --> Para la Autenticación (Tokens) |
+| NelmioCorsBundle --> Para los CORS |
 
 ### Base de Datos
-| Tecnología | Versión |
-|---|---|
-| MySQL | 8.0 | 
+| Tecnología |
+|---|
+| MySQL | 
 
-### Cómo está hecho
+### Estructura Proyecto
 | Tecnología | Propósito |
 |---|---|
 | Docker + Docker Compose | Dockerización |
@@ -247,7 +251,7 @@ Hay creados tres roles, estos puedes verlos en `security.yaml`:
 |---|---|---|
 | `ROLE_USER` | — | Rol base. Asignado automáticamente a todos los usuarios registrados. |
 | `ROLE_TRABAJADOR` | `ROLE_USER` | Tatuadores/Artistas. Gestionan proyectos, productos, packs y agenda. |
-| `ROLE_ADMIN` | `ROLE_USER` | Administrador (El jefe). Control total: gestión de roles, historial de pedidos, agendas de todos los trabajadores. |
+| `ROLE_ADMIN` | `ROLE_USER` | Administrador. Gestión de roles, historial de pedidos, agendas de todos los trabajadores. |
 
 ---
 
@@ -295,23 +299,21 @@ Hay creados tres roles, estos puedes verlos en `security.yaml`:
 
 ### 7.1 Entorno Local con Docker Compose
 
-El archivo `docker-compose.yml` define 4 servicios:
+El archivo `docker-compose.yml` tiene 4 servicios:
 
-| Servicio | Imagen | Puerto | Descripción |
-|---|---|---|---|
-| `frontend` | Node 20 + Nginx Alpine | `80` | Build de React con Vite, servido por Nginx con proxy inverso a `/api/` |
-| `backend` | PHP 8.2 + Apache | `8000` | Symfony con API Platform, mod_rewrite habilitado |
-| `db` | MySQL 8 | `3306` | Base de datos con volumen persistente y carga automática de `init.sql` |
-| `phpmyadmin` | phpmyadmin | `8080` | Administración visual de la base de datos |
-
-**Nginx como proxy inverso** (entorno local): todas las peticiones a `/api/*` se reenvían internamente al contenedor `backend`, eliminando problemas de CORS en desarrollo.
+| Servicio | Puerto |
+|---|---|
+| `frontend` | `80` |
+| `backend` | `8000` |
+| `db` | `3306` |
+| `phpmyadmin` | `8080` |
 
 ```bash
 # Levantar todo el entorno local
 docker-compose up --build
 ```
 
-### 7.2 Despliegue en Producción
+### 7.2 Despliegue
 
 #### Frontend → Vercel
 
@@ -333,7 +335,7 @@ Configurado en `railway.json`:
 2. Instala extensiones: `pdo_mysql`, `intl`, `zip`
 3. Habilita `mod_rewrite` y configura `DocumentRoot` → `/var/www/symfony/public`
 4. Configura `SetEnvIf Authorization` para pasar el JWT a PHP
-5. Instala dependencias con Composer (caché de capas optimizada)
+5. Instala dependencias con Composer
 6. Genera claves JWT si no existen
 7. Optimiza autoload y warmup de caché de producción
 8. Script de inicio dinámico que adapta el puerto al proporcionado por Railway (`$PORT`)
@@ -404,19 +406,23 @@ TFG_DEF/
 
 | Método | Endpoint | Acceso | Descripción |
 |---|---|---|---|
-| POST | `/api/login_check` | Público | Autenticación (devuelve JWT) |
-| GET | `/api/me` | Autenticado | Datos del usuario actual |
+| POST | `/api/login_check` | Público | Autenticación (JWT) |
+| GET | `/api/me` | Autenticado | Datos del usuario |
 | POST | `/api/users` | Público | Registro de usuarios |
-| GET | `/api/proyectos` | Público | Listar proyectos |
+| GET | `/api/proyectos` | Público | Mostrar proyectos |
 | POST | `/api/proyectos` | Trabajador/Admin | Crear proyecto |
-| GET | `/api/productos` | Público | Listar productos |
-| GET | `/api/packs` | Público | Listar packs |
-| GET | `/api/trabajadors` | Público | Listar trabajadores |
-| GET | `/api/estilos` | Público | Listar estilos |
-| GET | `/api/citas` | Autenticado | Listar citas (filtrable) |
+| GET | `/api/productos` | Público | Mostrar productos |
+| POST | `/api/productos` | Trabajador/Admin | Crear productos |
+| GET | `/api/packs` | Público | Mostrar packs |
+| POST | `/api/packs` | Trabajador/Admin | Crear packs |
+| GET | `/api/trabajadors` | Público | Mostrar trabajadores |
+| GET | `/api/estilos` | Público | Mostrar estilos |
+| POST | `/api/estilos` | Trabajador/Admin | Crear estilos |
+| GET | `/api/citas` | Autenticado | Mostrar citas |
 | POST | `/api/citas` | Autenticado | Reservar cita |
 | POST | `/api/checkout` | Autenticado | Procesar pedido |
-| GET/POST | `/api/valoracion_*` | Público/Autenticado | Valoraciones de proyectos, productos, packs y trabajadores |
+| GET | `/api/valoracion_*` | Público/Autenticado | Valoraciones de proyectos, productos, packs y trabajadores |
+| POST | `/api/valoracion_*` | Autenticado | Valoraciones de proyectos, productos, packs y trabajadores |
 | GET | `/api/equipo` | Público | Miembros del equipo |
 
 ---
@@ -707,7 +713,7 @@ También este tiene un buscador para poder buscar directamente al cliente por su
 #### 10.20.2 Historial completo de pedidos
 Te muestra todas las compras que se han realizado y en cada una de ellas, aparecerá el número del pedido, la fecha de la compra, el nombre del usuario, el precio y al lado te aparecera un desplegable llamado "completado" el cuál si pulsas en él, te dará más detalles de ese pedido. También tiene un buscador y un filtrado por "Administrador", "Trabajador" y "Cliente".
 
-![Admin](./img/vistaAdmin/)
+![Admin](./img/vistaAdmin/historial.png)
 
 #### 10.20.3 Agendas de todos los trabajadores.
 Aparecen todos los trabajadores existentes, cuando pulsas en uno de ellos, te abrirá la agenda de dicho trabajador y dentro de la agenda puedes tú tambien hacer lo que hace un trabajador (Gestionar las citas).
@@ -865,8 +871,8 @@ Si todo ha salido bien, te tiene que salir el siguiente mensaje:
 
 ### Requisitos previos
 - Docker y Docker Compose instalados
-- Node.js 20+ (para desarrollo sin Docker)
-- PHP 8.2+ y Composer (para desarrollo sin Docker)
+- Node.js 20+
+- PHP 8.2+ y Composer
 
 ### Con Docker (recomendado)
 ```bash
