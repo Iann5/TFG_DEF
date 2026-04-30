@@ -253,6 +253,13 @@ Hay creados tres roles, estos puedes verlos en `security.yaml`:
 | `ROLE_TRABAJADOR` | `ROLE_USER` | Tatuadores/Artistas. Gestionan proyectos, productos, packs y agenda. |
 | `ROLE_ADMIN` | `ROLE_USER` | Administrador. Gestión de roles, historial de pedidos, agendas de todos los trabajadores. |
 
+### 5.1 Usuarios de prueba
+| Rol | Usuario | Contraseña |
+|---|---|---|
+| `Administrador` | `admin@gmail.com` | admin |
+| `Trabajador` | `law@gmail.com` | 1234 |
+| `Cliente` | `maria@gmail.com` | 123 |
+
 ---
 
 ## 6. Casos de Uso por Rol
