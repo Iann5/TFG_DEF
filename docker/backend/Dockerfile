@@ -22,6 +22,7 @@ RUN echo "<Directory /var/www/symfony/public>\n    AllowOverride All\n    Fallba
 
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
 WORKDIR /var/www/symfony
 
